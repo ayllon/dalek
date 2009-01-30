@@ -12,10 +12,10 @@ MOUNT_POINT  = "/mnt/"
 
 # Boot loader
 STAGE1 = "build/stage1.bin"
-STAGE2 = "build/loader.bin"
+STAGE2 = "build/stage2.bin"
 
 # Default target
-all: $(STAGE1)
+all: $(STAGE1) $(STAGE2)
 
 
 # Helper
@@ -30,15 +30,13 @@ install: all
 	dd if=$(STAGE1) of=$(FLOPPY_IMAGE) conv=notrunc
 
 	# Now, mount the floppy (need sudo)
-	sudo mount -o loop -o umask=000 $(FLOPPY_IMAGE) $(MOUNT_POINT)
+	#sudo mount -t vfat -o loop -o umask=000 $(FLOPPY_IMAGE) $(MOUNT_POINT)
 
 	# Copy stage 2
-	cp $(STAGE2) $(MOUNT_POINT)
-
-	# TODO: Copy files
+	#cp $(STAGE2) $(MOUNT_POINT)
 
 	# Umount
-	sudo umount $(MOUNT_POINT)
+	#sudo umount $(MOUNT_POINT)
 
 # Boot loader (Stage1)
 $(STAGE1): force_look
