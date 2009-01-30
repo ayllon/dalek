@@ -7,7 +7,7 @@ DEFINES = -DDEBUG
 DIRS = "bootloader/stage1" "bootloader/stage2"
 
 # Output
-FLOPPY_IMAGE = "/home/alejandro/DesarrolloHost/dalek/floppy.img"
+FLOPPY_IMAGE = "/home/alejandro/desarrollo/floppy.img"
 MOUNT_POINT  = "/mnt/"
 
 # Boot loader
@@ -30,13 +30,13 @@ install: all
 	dd if=$(STAGE1) of=$(FLOPPY_IMAGE) conv=notrunc
 
 	# Now, mount the floppy (need sudo)
-	#sudo mount -t vfat -o loop -o umask=000 $(FLOPPY_IMAGE) $(MOUNT_POINT)
+	sudo mount -t vfat -o loop -o umask=000 $(FLOPPY_IMAGE) $(MOUNT_POINT)
 
 	# Copy stage 2
-	#cp $(STAGE2) $(MOUNT_POINT)
+	cp $(STAGE2) $(MOUNT_POINT)
 
 	# Umount
-	#sudo umount $(MOUNT_POINT)
+	sudo umount $(MOUNT_POINT)
 
 # Boot loader (Stage1)
 $(STAGE1): force_look
@@ -50,5 +50,5 @@ $(STAGE2): force_look
 
 clean:
 	$(ECHO) Cleaning...
-	-for d in ($DIRS); do (cd $$d; $(MAKE) clean); done
+	-for d in $(DIRS); do (cd $$d; $(MAKE) clean); done
 

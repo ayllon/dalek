@@ -52,33 +52,67 @@ loader:
 	call	print
 
 	/* Reset floppy */
-	mov	$0, %dl
 	call	floppyReset
 
 	/* Read FAT Table */
-	mov	fatPointer, %bx
+	mov	$_end, %bx
+	mov	%bx, fatPointer
 	call	readFAT
 
 	/* Read root directory */
 	add	fatPointer, %ax
 	mov	%ax, rootPointer
 	mov	rootPointer, %bx
-	mov	$0, %dl
 	call	readRoot
 	
 	/* Search for the file */
-	mov	rootPointer, %si
-	call	print
+	call	searchFile
+	or	%ax, %ax
+	jz	_notFound
 	
-	#mov	$stage2File, %si
-	#call	searchFile
+	/* Load file to memory */
+	/* Where */
+	push	%ax
+	mov	$0x0050, %ax
+	mov	%ax, %es
+	mov	$0x0000, %bx
+
+	mov	bpbBytesPerSector, %ax
+	mulw	bpbSectorsPerCluster
+	mov	%ax, bytesPerCluster
+
+	pop	%ax
+
+_stage2_read:
+	/* Read */
+	push	%ax
 	
-	/* Load to memory */
-	#call	readLBA
+	call	clusterLBA
+
+	mov	bpbSectorsPerCluster, %cl
+	xor	%dx, %dx
+	call	readLBA
+	
+	pop	%ax
+	/* Get next cluster from FAT*/
+	call	nextCluster
+	add	bytesPerCluster, %bx
+	test	0x0FF0, %ax
+	jb	_stage2_read
 	
 	/* Jump there */
+#	mov	$0x0050, %ax
+#	mov	%ax, %ds
+#	mov	$0x0000, %si
+#	call	print
+#	cli
+#	hlt
+	ljmp	$0x0050,$0x0000
 
 	/* Halt */
+_notFound:
+	mov	$strNotFound, %si
+	call	print
 	cli
 	hlt
 
@@ -88,7 +122,7 @@ loader:
 print:
 	pusha
 	
-	xor	%bx, %bx
+	xor	%bh, %bh
 	mov	$0x0e, %ah
 _print_loop:	
 	lodsb
@@ -103,65 +137,56 @@ _print_done:
 
 
 /* Reset floppy
- * In DL must be the floppy unit (usually, 0)
  */
 floppyReset:
-	push	%ax
+	pusha
 _flReset:	
 	xor	%ah, %ah
+	mov	bootDrive, %dl
 	int	$0x13
 	jc	_flReset /* Until we get it */
-	pop	%ax
+	popa
 	ret
 
 /* Read a logical sector CX from the disk CH using BIOS interrupts
  * (Convert secuential cluster to Head, Cylinder, Sector and read)
  * DX.AX = Logical sector
  * CL = Number of logical sectors
- * CH = Drive number
  * ES:BX = Where to put the data
  */
 readLBA:
+	mov	%cl, _nsect
 	pusha
 	
 	/* Logical sector / Sectors per track */
 	divw	bpbSectorsPerTrack
-	mov	%ax, _sector
-	incw	_sector		/* Now we have the sector */
+	mov	%dl, _sector
+	incb	_sector		/* Now we have the sector */
 	
 	/* (LS / SPT) mod heads */
+	xor	%dx, %dx
 	divw	bpbHeadsPerCylinder
-	mov	%dx, _head	/* Here we have the head */
-
+	mov	%dl, _head	/* Here we have the head */
 	/* LS / (SPT * NH) */
-	push	%ax
-	push	%dx
-	mov	bpbSectorsPerTrack, %ax
-	mulb	bpbHeadsPerCylinder
-	mov	%ax, _cyl
-	pop	%dx
-	pop	%ax
-	divw	_cyl
-	mov	%ax, _cyl	/* And the cylinder */
+	mov	%al, _cyl	/* And the cylinder */
 
 	popa
 	
 	/* Read */
 	pusha
-_readLBA_loop:
-	mov	%ch, %dl /* Drive */
-	mov	%cl, %al /* Size */
-	
+_readLBA_loop:	
+	mov	bootDrive, %dl
+	mov	_nsect,	 %al
 	mov	_cyl,    %ch
 	mov	_sector, %cl
 	mov	_head,   %dh
-	
 	
 	mov	$0x02, %ah
 	int	$0x13
 	jc	_readLBA_loop
 	
 	popa
+	call	floppyReset
 	ret
 _sector:
 	.byte	0x00
@@ -169,20 +194,20 @@ _head:
 	.byte	0x00
 _cyl:
 	.byte	0x00
+_nsect:
+	.byte	0x00
 
 /* Read FAT Table
- * In DL is the drive number
  * Puts FAT table in ES:BX, returns FAT size (in bytes) in DX.AX
  */
 readFAT:
 	pusha
-	mov	%dl, %ch
 	/* Where is the 1st FAT table? */
-	mov	bpbReservedSectors, %ax	/* Cluster number        */
-	mov	$0x00, %dx		/* Cluster number (high) */
+	mov	bpbReservedSectors, %ax	/* Sector number        */
+	mov	$0x00, %dx		/* Sector number (high) */
 	
 	/* Read FAT Table */
-	mov	bpbSectorsPerFAT, %cl	/* Size */
+	mov	bpbSectorsPerFAT, %cx	/* Size */
 	call	readLBA
 
 	popa
@@ -198,65 +223,133 @@ readFAT:
  * the memory area pointed by ES:BX
  */
 readRoot:
-	mov	%dl, _drive
 	pusha
-	/* Where is Root? */
-	mov	bpbReservedSectors, %cx
-	mov	bpbNumberOfFATs, %ax
-	mulw	bpbSectorsPerFAT
-	add	%ax, %cx		/* Cluster number        */
-	adc	$0x00,%dx		/* Cluster number (high) */
-
 	/* Size of root (in sectors)*/
-	push	%dx
-	mov	bpbRootEntries, %ax
-	mov	$32, %dl		/* 32 bytes per entry */
-	mul	%dl
-	divw	bpbBytesPerSector	/* In AL we have now nº of sectors */
-	pop	%dx
+	mov	$32, %ax		/* 32 bytes per entry */
+	mulw	bpbRootEntries
+	divw	bpbBytesPerSector
+	xor	%cx, %cx
+	mov	%al, %cl		/* In CL we have now nº of sectors */
+	
+	/* Where is Root? */
+	mov	bpbNumberOfFATs, %al
+	xor	%ah, %ah
+	mulw	bpbSectorsPerFAT
+	add	bpbReservedSectors, %ax	/* Sector number        */
+	adc	$0x00, %dx		/* Sector number (high) */
+
+	/* Calculate the begin of the data */
+	mov	%ax, dataSector
+	add	%cx, dataSector
 
 	/* Read */
-	mov	_drive, %dl
 	call	readLBA
 	
 	popa
 	ret
-_drive:
-	.byte	0x00
 
 /* Search for file
- * Search for the file pointed by BX in the root directory pointed by SI
- * Returns the first cluster (0 if not founded) in AX
+ * Returns the first cluster (0 if not found or empty) in AX
  */
 searchFile:
+	mov	rootPointer, %di
+	mov	bpbRootEntries, %cx
+_searchLoop:
+	push	%cx
+	mov	$11, %cx
+	mov	$stage2File, %si
+	push	%di
+    rep cmpsb
+	pop	%di
+	pop	%cx
+	je	_searchMatch
+	add	$32, %di		/* Next entry */
+	loop	_searchLoop
+	/* Not found */
+	xor %ax, %ax
+	ret
+	/* Founded :-D */
+_searchMatch:
+	mov	0x1a(%di), %ax
 	ret
 
-/* Gets next cluster
+/* Get next cluster
  * Process FAT table looking for the next cluster
  * AX = Current cluster
- * SI = FAT table in memory
- * Returns the next cluster in AX
+ * Returns the next cluster in AX, 0x0FF0/0x0FFF if none
  */
 nextCluster:
+	push	%bx
+	push	%cx
+	push	%dx
+	
+	/* Get the offset in the table*/
+	mov	%ax, %cx
+	mov	%ax, %dx
+	shr	$0x01, %dx
+	add	%dx, %cx
+	/* Read word */
+	mov	fatPointer, %bx
+	add	%cx, %bx
+	mov	(%bx), %dx
+	/* Get only the bits we need */
+	test	$0x0001, %ax
+	jnz	_next_ODD
+	/* Even cluster */
+_next_EVEN:
+	and	$0b0000111111111111, %dx
+	jmp	_next_Done
+	/* Odd cluster */
+_next_ODD:
+	shr	$0x04, %dx
+	/* End */
+_next_Done:
+	mov	%dx, %ax
+	
+	pop	%dx
+	pop	%cx
+	pop	%bx
 	ret
 
+/* Cluster to LBA
+ * AX = Cluster
+ * Leave in AX the logical sector
+ */
+clusterLBA:
+	push	%cx
+	
+	sub	$0x02, %ax	/* Cluster 0x02 means 0 :-P */
+	xor	%cx, %cx
+	mov	bpbSectorsPerCluster, %cl
+	mul	%cx
+	add	dataSector, %ax	/* Cluster 0 is next to root directory */
+	
+	pop	%cx
+	ret
+	
 	
 /* Variables */
 fatPointer:
-	.word _end
+	.word	0x00
 rootPointer:
-	.word 0x00
+	.word	0x00
+bootDrive:
+	.byte	0x00
+dataSector:
+	.word	0x00
+bytesPerCluster:
+	.word	0x00
 	
 /* Strings */
 strLoading:
-	.string "DAleK Loader [Stage 1.1]\n\r"
-strNoFile:
-	.string "Stage 2 file not found\n\r"
+	.string "DAleK Loader [Stage 1]\n\r"
+strNotFound:
+	.string "Stage 2 file not found or invalid\n\r"
 stage2File:
 	.byte 'S','T','A','G','E','2',' ',' ','B','I','N'
 	
 /* Magic */
-	#.org 0x1FE
+	.org 0x1FE
 	.word 0xAA55
 
 _end:

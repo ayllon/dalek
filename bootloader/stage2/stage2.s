@@ -1,10 +1,8 @@
 /*
- * stage1.s
+ * stage2.s
  *
- * First stage boot loader
- * This file looks for and loads the second stage boot loader
- * It depends on the file system (this one is for FAT12/16),
- * in the future I plan to write for others.
+ * Second stage boot loader
+ *
  */
 
 .code16
@@ -13,12 +11,12 @@
 
 /* Start */
 start:
-	/* Reset segment registers */
-	xor	%ax, %ax
-	mov	%ax, %ds
-	mov	%ax, %es
-
-	/* Just say we are here :-) */
+	cli
+	/* Ensure segment register are OK */
+	push	%cs
+	pop	%ds
+	
+	/* Just say hello :-) */
 	mov	$strHello, %si
 	call	print
 
@@ -33,7 +31,7 @@ print:
 	push	%ax
 	push	%bx
 	
-	xor	%bx, %bx
+	xor	%bh, %bh
 	mov	$0x0e, %ah
 _print_loop:	
 	lodsb
