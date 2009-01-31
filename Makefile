@@ -7,7 +7,7 @@ DEFINES = -DDEBUG
 DIRS = "bootloader/stage1" "bootloader/stage2"
 
 # Output
-FLOPPY_IMAGE = "/home/alejandro/desarrollo/floppy.img"
+FLOPPY_IMAGE = "build/floppy.img"
 MOUNT_POINT  = "/mnt/"
 
 # Boot loader

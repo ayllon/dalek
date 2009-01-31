@@ -97,16 +97,10 @@ _stage2_read:
 	/* Get next cluster from FAT*/
 	call	nextCluster
 	add	bytesPerCluster, %bx
-	test	0x0FF0, %ax
+	cmp	$0x0FF0, %ax
 	jb	_stage2_read
 	
 	/* Jump there */
-#	mov	$0x0050, %ax
-#	mov	%ax, %ds
-#	mov	$0x0000, %si
-#	call	print
-#	cli
-#	hlt
 	ljmp	$0x0050,$0x0000
 
 	/* Halt */
