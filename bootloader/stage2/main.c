@@ -1,11 +1,30 @@
 /* Main file */
 #include <types.h>
 #include <printf.h>
+#include <memory.h>
+#include <idt.h>
+#include <irq.h>
+#include <timer.h>
 
 void main(uint16 drive)
 {
+  // Welcome
+  setcolor(WHITE, BLUE);
   cls();
-  setcolor(RED, BLACK);
   printf("Stage 2 loaded from drive %i\n", drive);
-  asm("hlt");
+  // Memory
+  mm_initialize();
+  // IDT and IRQ
+  idt_install();
+  irq_install();
+  // Install handlers
+  timer_init();
+  kb_init();
+  // Re-enable interrupts
+  asm("sti");
+
+  while(1)
+  {
+    putc(kb_getc());
+  }
 }

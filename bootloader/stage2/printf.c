@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <strings.h>
 #include <memory.h>
+#include <ports.h>
 
 static struct
 {
@@ -23,11 +24,15 @@ void cls()
 {
   uint16 i = 0;
   
-  for(i = 0; i < T_COLUMNS * T_ROWS * 2; i++)
-    *(screen.video + i) = 0x00;
+  for(i = 0; i < T_COLUMNS * T_ROWS; i++)
+  {
+    *(screen.video + i * 2) = 0x00;
+    *(screen.video + i * 2 + 1) = screen.attr;
+  }
 
   screen.posx = 0;
   screen.posy = 0;
+  updatecursor();
 }
 
 /* scroll(uint8)
@@ -50,6 +55,7 @@ void scroll(uint8 n)
 
   screen.posy = T_ROWS - n + 1;
   screen.posx = 0;
+  updatecursor();
 }
 
 /* setcolor(uint8, uint8)
@@ -67,6 +73,25 @@ void restorecolor()
   screen.attr = T_ATTR;
 }
 
+/* updatecursor()
+ * Update the cursor position
+ */
+void updatecursor()
+{
+  static uint16 position;
+  static uint8  val;
+  position = screen.posx + screen.posy * T_COLUMNS;
+
+  // Set low byte
+  val = position & 0x00FF;
+  outportb(0x03D4, 0x0F); // Register index
+  outportb(0x03D5, val);
+  // Set high byte
+  val = (position & 0xFF00) >> 8;
+  outportb(0x03D4, 0x0E); // Register index
+  outportb(0x03D5, val);
+}
+
 /* putc(char)
  * Puts a character into the console
  * c   The character
@@ -79,11 +104,9 @@ void putc(char c)
     screen.posx = 0;
     if(++(screen.posy) > T_ROWS)
       scroll(1);
-    return;
   }else if(c == '\r')
   {
     screen.posx = 0;
-    return;
   }else if(c == '\b')
   {
     if(screen.posx > 0)
@@ -92,20 +115,21 @@ void putc(char c)
       putc('\0');
       screen.posx--;
     }
-    return;
-  }
+  }else{
+    // Put char
+    *(screen.video + (screen.posx + screen.posy * T_COLUMNS) * 2)     = c & 0xFF;
+    *(screen.video + (screen.posx + screen.posy * T_COLUMNS) * 2 + 1) = screen.attr;
 
-  // Put char
-  *(screen.video + (screen.posx + screen.posy * T_COLUMNS) * 2)     = c & 0xFF;
-  *(screen.video + (screen.posx + screen.posy * T_COLUMNS) * 2 + 1) = screen.attr;
-
-  if(++(screen.posx) > T_COLUMNS)
-  {
-    screen.posx = 0;
-    screen.posy++;
-    if(screen.posy > T_ROWS)
-      scroll(1);
+    if(++(screen.posx) > T_COLUMNS)
+    {
+      screen.posx = 0;
+      screen.posy++;
+      if(screen.posy > T_ROWS)
+	scroll(1);
+    }
   }
+  // Update cursor
+  updatecursor();
 }
 
 /* printf(const char *, ...)

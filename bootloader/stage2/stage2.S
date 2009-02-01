@@ -49,6 +49,10 @@ stage3:
 	mov	$(stack + STACK_SIZE), %esp
 	mov	%esp, %ebp
 
+	/* Enable A20 */
+	mov	$0xDD, %al
+	out	%al, $0x64
+
 	/* Jump */
 	push	bootDrive
 	call	main

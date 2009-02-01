@@ -35,6 +35,7 @@ void cls();
 void scroll(unsigned char n);
 void setcolor(unsigned char forecolor, unsigned char backcolor);
 void restorecolor();
+void updatecursor();
 void putc(char c);
 int  vprintf(const char *s, va_list args);
 int  printf(const char *s, ...);
