@@ -94,6 +94,8 @@ _stage2_read:
 	call	readLBA
 	
 	pop	%ax
+	mov	$strDot, %si
+	call	print
 	/* Get next cluster from FAT*/
 	call	nextCluster
 	add	bytesPerCluster, %bx
@@ -101,6 +103,8 @@ _stage2_read:
 	jb	_stage2_read
 	
 	/* Jump there */
+	xor	%bx, %bx
+	mov	bootDrive, %bl	/* Boot drive */
 	ljmp	$0x0050,$0x0000
 
 	/* Halt */
@@ -142,7 +146,7 @@ _flReset:
 	popa
 	ret
 
-/* Read a logical sector CX from the disk CH using BIOS interrupts
+/* Read a logical sector from the disk using BIOS interrupts
  * (Convert secuential cluster to Head, Cylinder, Sector and read)
  * DX.AX = Logical sector
  * CL = Number of logical sectors
@@ -213,7 +217,7 @@ readFAT:
 	ret
 
 /* Read root directory
- * Read root directory from the disk DL into
+ * Read root directory from the disk into
  * the memory area pointed by ES:BX
  */
 readRoot:
@@ -336,9 +340,11 @@ bytesPerCluster:
 	
 /* Strings */
 strLoading:
-	.string "DAleK Loader [Stage 1]\n\r"
+	.string "Loading Stage 2\n\r"
 strNotFound:
 	.string "Stage 2 file not found or invalid\n\r"
+strDot:
+	.string "."
 stage2File:
 	.byte 'S','T','A','G','E','2',' ',' ','B','I','N'
 	
