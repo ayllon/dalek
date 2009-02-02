@@ -7,6 +7,8 @@
 #include <irq.h>
 #include <types.h>
 #include <idt.h>
+#include <ports.h>
+#include <printf.h>
 
 /* IRQ Handlers */
 static void *irq_routines[16] =

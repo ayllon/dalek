@@ -5,6 +5,7 @@
 #include <idt.h>
 #include <irq.h>
 #include <timer.h>
+#include <keyboard.h>
 
 void main(uint16 drive)
 {

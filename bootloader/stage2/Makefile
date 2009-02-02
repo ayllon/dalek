@@ -5,16 +5,18 @@ OBJFILES = stage2.S.o main.o memory.o printf.o strings.o ports.o idt.S.o idt.o i
 LDSCRIPT = linker.ld
 INCLUDE  = -I include/
 
+BUILTIN_KEYMAP = keymaps/es_es.o
+
 all: $(TARGET)
 
-$(TARGET): $(OBJFILES)
+$(TARGET): $(OBJFILES) $(BUILTIN_KEYMAP)
 	$(LD)  -T $(LDSCRIPT) -o $@ $^
 
 %.S.o: %.S
-	$(CXX) $(CFLAGS) $(INCLUDE) -c -o $@ $<
+	$(CXX) $(CFLAGS) $(INCLUDE) $(DEFINES) -c -o $@ $<
 	
 %.o: %.c
-	$(CXX) $(CFLAGS) $(INCLUDE) -c -o $@ $<
+	$(CXX) $(CFLAGS) $(INCLUDE) $(DEFINES) -c -o $@ $<
 
 clean:
 	$(RM) *.o $(TARGET)

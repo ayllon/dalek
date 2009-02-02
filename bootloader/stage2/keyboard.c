@@ -7,44 +7,17 @@
 #include <keyboard.h>
 #include <types.h>
 #include <irq.h>
+#include <ports.h>
 
-/** BUILT-IN KEYMAP **/
-static uint16 kb_default_keymap[] = 
-  {
-    NULL,
-    KEY_ESC,
-    '1' , '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
-    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']',
-    KEY_ENTER,
-    KEY_LCONTROL,
-    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'',
-    '`',
-    KEY_LSHIFT,
-    '\\',
-    'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',
-    KEY_RSHIFT,
-    NULL,
-    KEY_LALT,
-    ' ',
-    KEY_CAPS,
-    KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_F10,
-    KEY_NUMLOCK, KEY_SCROLL,
-    '7', '8', '9',
-    '-',
-    '4', '5', '6',
-    '+',
-    '1', '2', '3',
-    '0', '.',
-    NULL, NULL, NULL,
-    KEY_F11, KEY_F12
-    // ENOUGHT, BUT THERE ARE MORE
-    };
-
+/* Types */
 static struct
 {
   uint8 shift, caps;
   uint8 numlock;
 }kb_flags = {0, 0, 0};
+
+/* Keymap */
+extern uint16 kb_keymap[], kb_shift_keymap[], kb_altgr_keymap[];
 
 /** Keyboard buffer **/
 static uint16 kb_key = 0x00;
@@ -70,12 +43,19 @@ void kb_handler(struct regs *regs)
       // Breakcode
     }else
     {
-      kb_key = kb_default_keymap[c];
+      // Get char
+      if(kb_flags.shift)
+	kb_key = kb_shift_keymap[c];
+      else
+	kb_key = kb_keymap[c];
 
-      if(kb_key > 'a' && kb_key < 'z')
+      // Shift block
+      if(kb_flags.caps)
       {
-	if(kb_flags.shift && !kb_flags.caps)
+	if(kb_key > 'a' && kb_key < 'z')
 	  kb_key = kb_key - 'a' + 'A';
+	else if(kb_key > 'A' && kb_key < 'Z')
+	  kb_key = kb_key - 'Z' + 'a';
       }
     }
   }
