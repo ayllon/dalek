@@ -30,6 +30,8 @@
 #define KEY_LALT     0x1400
 #define KEY_ENTER    '\n'
 
+#define KB_BUFFER_LEN 32
+
 /** METHODS **/
 void kb_init();
 uint16 kb_getc();
