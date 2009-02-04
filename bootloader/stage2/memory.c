@@ -77,7 +77,7 @@ void *malloc(uint32 size)
   // Not enought
   if(!mem_node)
   {
-    printf("[kmalloc()] Not enough free memory (%i bytes)", size);
+    printf("[malloc()] Not enough free memory (%i bytes)", size);
     return NULL;
   }
 
