@@ -10,7 +10,7 @@
 
 #define T_VIDEO   0xB8000
 #define T_COLUMNS 80
-#define T_ROWS    24
+#define T_ROWS    25
 #define T_ATTR	  0x07
 
 /* Character attributes */

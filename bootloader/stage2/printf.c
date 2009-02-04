@@ -40,6 +40,8 @@ void cls()
  */
 void scroll(uint8 n)
 {
+  uint16 i;
+
   if(n > T_ROWS)
     n = T_ROWS;
   if(n == 0)
@@ -48,12 +50,18 @@ void scroll(uint8 n)
   // 2 bytes per character (color and character)
   memcpy(screen.video,
 	 screen.video + T_COLUMNS * n * 2,
-	 (T_ROWS - n + 1) * T_COLUMNS * 2);
-  memset(screen.video + (T_ROWS - n + 1) * T_COLUMNS * 2,
-	 0,
-	 n * T_COLUMNS * 2);
+	 (T_ROWS - n) * T_COLUMNS * 2);
+  
+  // Clear last line
+  i = (T_ROWS - n) * T_COLUMNS;
+  while(i < (T_ROWS * T_COLUMNS))
+  {
+    *(screen.video + i * 2) = 0x00;
+    *(screen.video + i * 2 + 1) = screen.attr;
+    i++;
+  }
 
-  screen.posy = T_ROWS - n + 1;
+  screen.posy = T_ROWS - n;
   screen.posx = 0;
   updatecursor();
 }
@@ -102,7 +110,7 @@ void putc(char c)
   if(c == '\n')
   {
     screen.posx = 0;
-    if(++(screen.posy) > T_ROWS)
+    if(++(screen.posy) >= T_ROWS)
       scroll(1);
   }else if(c == '\r')
   {
@@ -124,7 +132,7 @@ void putc(char c)
     {
       screen.posx = 0;
       screen.posy++;
-      if(screen.posy > T_ROWS)
+      if(screen.posy >= T_ROWS)
 	scroll(1);
     }
   }
