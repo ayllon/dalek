@@ -28,6 +28,22 @@
 #define KEY_F11      0x1200
 #define KEY_F12      0x1300
 #define KEY_LALT     0x1400
+#define KEY_RCONTROL 0x1500
+#define KEY_PRTSCN   0x1600
+#define KEY_RALT     0x1700
+#define KEY_BREAK    0x1800
+#define KEY_HOME     0x1900
+#define KEY_UP       0x2000
+#define KEY_PGUP     0x2100
+#define KEY_LEFT     0x2200
+#define KEY_RIGHT    0x2300
+#define KEY_END      0x2400
+#define KEY_DOWN     0x2500
+#define KEY_PGDOWN   0x2600
+#define KEY_INSERT   0x2700
+#define KEY_DELETE   0x2800
+#define KEY_PRNTSCN  0x2900
+
 #define KEY_ENTER    '\n'
 
 #define KB_BUFFER_LEN 32

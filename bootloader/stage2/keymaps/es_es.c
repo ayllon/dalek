@@ -111,3 +111,37 @@ uint16 kb_altgr_keymap[] =
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL  // 0x7F
     };
 
+uint16 kb_escaped_keymap[] = 
+  {
+    NULL,    // 0x00
+    NULL, //0x01
+    NULL , NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 0x0E
+    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '`', '+',    // 0x1B
+    KEY_ENTER,    // 0x1C
+    KEY_RCONTROL, // 0x1D
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 0x29
+    KEY_LSHIFT, // 0x2A
+    NULL,       // 0x2B
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '/', // 0x35
+    KEY_RSHIFT, // 0x36
+    KEY_PRNTSCN,// 0x37
+    KEY_RALT,   // 0x38
+    NULL,       // 0x39
+    NULL,       // 0x3a
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 0x44
+    NULL, KEY_BREAK,  // 0x46
+    KEY_HOME, KEY_UP, KEY_PGUP,    // 0x49
+    NULL,             // 0x4a
+    KEY_LEFT, NULL, KEY_RIGHT,     // 0x4d
+    NULL,             // 0x4e
+    KEY_END, KEY_DOWN, KEY_PGDOWN, // 0x51
+    KEY_INSERT, KEY_DELETE,        // 0x53
+    NULL, NULL, NULL,  // 0x56
+    NULL, NULL, // 0x58
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 0x5F
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 0x67
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 0x6F
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 0x77
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL  // 0x7F
+    };
+
