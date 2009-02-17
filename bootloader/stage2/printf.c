@@ -74,6 +74,15 @@ void setcolor(uint8 forecolor, uint8 backcolor)
   screen.attr = forecolor | (backcolor << 4);
 }
 
+/* getcolor(uint8*, uint8*)
+ * Puts the color information into the variables
+ */
+void getcolor(uint8 *forecolor, uint8 *backcolor)
+{
+  *forecolor = screen.attr & 0x0F;
+  *backcolor = (screen.attr & 0xF0) >> 4;
+}
+
 /* restorecolor()
  */
 void restorecolor()
@@ -104,26 +113,39 @@ void updatecursor()
  * Puts a character into the console
  * c   The character
  */
-void putc(char c)
+char putc(char c)
 {
   // New line
-  if(c == '\n')
+  switch(c)
   {
+  case '\n':
     screen.posx = 0;
     if(++(screen.posy) >= T_ROWS)
       scroll(1);
-  }else if(c == '\r')
-  {
+    break;
+  case '\r':
     screen.posx = 0;
-  }else if(c == '\b')
-  {
+    break;
+  case '\b':
     if(screen.posx > 0)
     {
       screen.posx--;
       putc('\0');
       screen.posx--;
     }
-  }else{
+    break;
+  case '\t':
+    // Next multiple of TAB_WIDTH
+    screen.posx = ((screen.posx / TAB_WIDTH) + 1) * TAB_WIDTH;
+    if(screen.posx > T_COLUMNS)
+    {
+      screen.posx = 0;
+      screen.posy++;
+      if(screen.posy >= T_ROWS)
+	scroll(1);
+    }
+    break;
+  default:
     // Put char
     *(screen.video + (screen.posx + screen.posy * T_COLUMNS) * 2)     = c & 0xFF;
     *(screen.video + (screen.posx + screen.posy * T_COLUMNS) * 2 + 1) = screen.attr;
@@ -138,6 +160,8 @@ void putc(char c)
   }
   // Update cursor
   updatecursor();
+  // Return
+  return c;
 }
 
 /* printf(const char *, ...)

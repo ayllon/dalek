@@ -6,6 +6,7 @@
 #include <irq.h>
 #include <timer.h>
 #include <keyboard.h>
+#include <cli.h>
 
 void main(uint16 drive)
 {
@@ -24,8 +25,6 @@ void main(uint16 drive)
   // Re-enable interrupts
   asm("sti");
 
-  while(1)
-  {
-    putc(kb_getc());
-  }
+  // Launch command line interpreter
+  CLI();
 }

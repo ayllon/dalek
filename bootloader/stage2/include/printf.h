@@ -7,11 +7,14 @@
 #define __PRINTF_H__
 
 #include <stdarg.h>
+#include <types.h>
 
 #define T_VIDEO   0xB8000
 #define T_COLUMNS 80
 #define T_ROWS    25
 #define T_ATTR	  0x07
+
+#define TAB_WIDTH 4
 
 /* Character attributes */
 #define BLACK          0x0
@@ -32,11 +35,12 @@
 #define WHITE          0xF
 
 void cls();
-void scroll(unsigned char n);
-void setcolor(unsigned char forecolor, unsigned char backcolor);
+void scroll(uint8 n);
+void setcolor(uint8 forecolor, uint8 backcolor);
+void getcolor(uint8 *forecolor, uint8 *backcolor);
 void restorecolor();
 void updatecursor();
-void putc(char c);
+char putc(char c);
 int  vprintf(const char *s, va_list args);
 int  printf(const char *s, ...);
 
