@@ -43,6 +43,13 @@ int16 atoi(const char *s);
  */
 uint8 strcmp(const char *s1, const char *s2);
 
+/* void strcpy(char *dest, const char *orig)
+ * Copies the string orig into dest
+ * dest Where to copy
+ * orig From to copy
+ */
+void strcpy(char *dest, const char *orig);
+
 /* int16 strcontains(const char *s, char c)
  * Search for the first ocurrence of character c in s, returns the index (or -1 if not found)
  */
