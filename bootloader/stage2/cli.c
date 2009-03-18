@@ -21,6 +21,7 @@ static struct
    {reboot,  "reboot"},
    {halt,    "halt"},
    {echo,    "echo"},
+   {memory,  "memory"},
    {NULL, NULL}};
 
 /* void CLI()

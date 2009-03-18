@@ -5,6 +5,7 @@
 #include <memory.h>
 #include <types.h>
 #include <printf.h>
+#include <ports.h>
 
 // Memory information
 static uint32 mem_size = 0; // In KB!!
@@ -17,7 +18,65 @@ static struct memory_block_node *mem_used_blocks_list;
  */
 static void mm_get_memory_size(void)
 {
-  // todo: usar bios
+  /*  register uint32 *mem, a, cr0;
+  uint32 mem_count;
+
+  // Copy of CR0
+  asm volatile ("movl %%cr0, %%eax" : "=a"(cr0));
+
+  // Flush the cache and invalidate
+  asm volatile ("wbinvd");
+  
+  // Disable cache, writeback, and use 32 bit mode
+  asm volatile("movl %%eax, %%cr0" : : "a"(cr0 | 0x00000001 | 0x40000000 | 0x20000000));
+
+  // Remember the 640 KB barrier. Start at 1 MB
+  mem_count = 1024 * 1024;
+  mem_size  = 1024;
+  
+  do{
+    mem_size += 1024;
+    printf("Memory testing %i KB ...\r", mem_size);
+    mem_count += 1024 * 1024;
+    mem = (uint32*)mem_count;
+
+    a = *mem;
+
+    *mem = 0x55AA55AA;
+    // The empty ASM tells the compiler that it musn't
+    // rely on its registers as saved variables
+    asm("":::"memory");
+    if(*mem != 0x55AA55AA)
+      mem_count = 0;
+    else
+    {
+      *mem = 0xAA55AA55;
+      asm("":::"memory");
+      if(*mem != 0xAA55AA55)
+	mem_count = 0;
+    }
+    asm("":::"memory");
+    *mem = a;
+  }while(mem_size < 4190208 && mem_count != 0);
+
+  printf("\n");
+
+  // Restore CR0
+  asm volatile("movl %%eax, %%cr0": : "a"(cr0));
+
+  // mem_size in KB, we want bytes
+  mem_size *= 1024;*/
+
+  uint8 lowmem, himem;
+
+  // Ask CMOS
+  outportb(0x70, 0x30);
+  lowmem = inportb(0x71);
+  outportb(0x70, 0x31);
+  himem = inportb(0x71);
+
+  // Concatenate
+  mem_size = ((himem * 0xFF) + lowmem) * 1024;
 }
 
 /** UINT mm_size()
@@ -30,31 +89,33 @@ uint32 mm_size(void)
 
 /** void mm_initialize()
  * Initializes the memory manager
+ * Only the memory between the loader image and 1MB barrier can be used
+ * (Kernel image is loaded from 1MB)
  */
 void mm_initialize(void)
 {
-  extern unsigned long _end;
   struct memory_block_node *mem_node;
+  extern uint32 _end;
 
   // Get memory size
   mm_get_memory_size();
 
-  // Used memory: kernel space, plus first node of each list here, plus stack
-  mem_used_blocks_list = (void*)(0x100000 + _end + STACK_SIZE);
+  // Start of free memory
+  mem_used_blocks_list = (struct memory_block_node*)&_end;
 
   mem_node = mem_used_blocks_list;
 
   mem_node->start = 0x00;
-  mem_node->size = (uint32)(mem_node + 2*sizeof(struct memory_block_node));
-  mem_node->prev = mem_node->next = NULL;
+  mem_node->size  = (uint32)(mem_node + 2 * sizeof(struct memory_block_node));
+  mem_node->prev  = mem_node->next = NULL;
 
-  // Free memory: the rest
+  // Free memory: the rest until 1MB barrier
   mem_free_blocks_list = mem_used_blocks_list + sizeof(struct memory_block_node);
 
   mem_node = mem_free_blocks_list;
 
   mem_node->start = mem_node + sizeof(struct memory_block_node);
-  mem_node->size = mem_size - (uint32)(mem_node->start);
+  mem_node->size = 0x100000 - (uint32)(mem_node->start);
   mem_node->prev = mem_node->next = NULL;
 
 }
@@ -67,17 +128,22 @@ void *malloc(uint32 size)
 {
   struct memory_block_node *mem_node, *used_node;
   uint32 block_size = size + sizeof(struct memory_block_node);
+  uint32 biggest = 0;
 
   mem_node = mem_free_blocks_list;
 
   // Search for a free block
   while(mem_node && mem_node->size < block_size)
+  {
+    if(mem_node->size > biggest)
+      biggest = mem_node->size;
     mem_node = mem_node->next;
+  }
 
   // Not enought
   if(!mem_node)
   {
-    printf("[malloc()] Not enough free memory (%i bytes)", size);
+    printf("[malloc()] Not enough free memory (%i bytes needed / %i biggest block)\n", size);
     return NULL;
   }
 
@@ -212,4 +278,44 @@ uint8 *memcpy(uint8 *dest, uint8 *src, uint16 count)
   }
 
   return dest;
+}
+
+/* mm_allocatable_free()
+ * Tells how many memory we have for dynamic allocation (free)
+ * Puts into "total" the total amount, and in "biggest" the biggest free block
+ */
+void mm_allocatable_free(uint32 *total, uint32 *biggest)
+{
+  struct memory_block_node *mem_node;
+
+  // Init
+  *biggest = 0;
+  *total   = 0;
+  // Compute
+  for(mem_node = mem_free_blocks_list;
+      mem_node;
+      mem_node = mem_node->next)
+    {
+      *total += mem_node->size;
+      if(mem_node->size > *biggest)
+	*biggest = mem_node->size;
+    }
+}
+
+/* mm_used()
+ * Tells how many of the allocatable memory is used
+ */
+uint32 mm_allocatable_used()
+{
+  struct memory_block_node *mem_node;
+  uint32 s;
+
+  s = 0;
+
+  for(mem_node = mem_used_blocks_list;
+      mem_node;
+      mem_node = mem_node->next)
+    s += mem_node->size;
+
+  return s;
 }
