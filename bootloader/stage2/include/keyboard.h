@@ -48,6 +48,8 @@
 
 #define KB_BUFFER_LEN 32
 
+#define KB_IRQ 1
+
 /** METHODS **/
 void kb_init();
 uint16 kb_getc();

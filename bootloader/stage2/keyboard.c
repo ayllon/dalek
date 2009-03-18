@@ -121,7 +121,7 @@ void kb_handler(struct regs *regs)
  */
 void kb_init()
 {
-  irq_install_handler(1, kb_handler);
+  irq_install_handler(KB_IRQ, kb_handler);
   // Buffer
   kb_buffer.push_index = kb_buffer.pop_index = 0;
 }
