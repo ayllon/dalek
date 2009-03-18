@@ -1,7 +1,7 @@
 include ../../Makefile.inc
 
 TARGET   = ../../build/stage2.bin
-OBJFILES = stage2.S.o main.o memory.o printf.o strings.o ports.o idt.S.o idt.o irq.o irq.S.o timer.o keyboard.o cli.o get.o
+OBJFILES = stage2.S.o main.o memory.o printf.o strings.o ports.o idt.S.o idt.o irq.o irq.S.o timer.o keyboard.o cli.o get.o floppy.o io.o
 LDSCRIPT = linker.ld
 INCLUDE  = -I include/
 

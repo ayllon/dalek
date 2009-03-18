@@ -7,6 +7,7 @@
 #include <timer.h>
 #include <keyboard.h>
 #include <cli.h>
+#include <floppy.h>
 
 void main(uint16 drive)
 {
@@ -24,6 +25,8 @@ void main(uint16 drive)
   kb_init();
   // Re-enable interrupts
   asm("sti");
+  // Initialize drivers
+  fd_init();
 
   // Launch command line interpreter
   CLI();

@@ -22,10 +22,13 @@ struct memory_block_node
 };
 
 /** PROTOTYPES **/
-void mm_initialize(void);
+void   mm_initialize(void);
 uint32 mm_size(void);
-void *malloc(uint32 size);
-void free(void *ptr);
+void  *malloc(uint32 size);
+void   free(void *ptr);
+
+void   mm_allocatable_free(uint32 *total, uint32 *size);
+uint32 mm_allocatable_used();
 
 uint8  *memcpy(uint8 *dest, uint8 *src, uint16 count);
 uint8  *memset(uint8 *dest, uint8 val, uint16 count);
