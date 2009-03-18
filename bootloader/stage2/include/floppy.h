@@ -10,16 +10,24 @@
 #include <types.h>
 #include <io.h>
 
+/* Floppy parameter table */
+#define FD_PARAMETER_ADDRESS 0x000fefc7
+
+/* Controllers */
+#define FD_PRIMARY_BASE     0x03F0
+#define FD_SECONDARY_BASE   0x0370
+#define FD_IRQ              6
+
 /* Registers IO ports */
-#define FD_STATUS_A         0x3F0 // read-only
-#define FD_STATUS_B         0x3F1 // read-only
-#define FD_DIGITAL_OUTPUT   0x3F2
-#define FD_TAPE_DRIVER      0x3F3
-#define FD_MAIN_STATUS      0x3F4 // read-only
-#define FD_DATA_RATE_SELECT 0x3F4 // write-only
-#define FD_DATA_FIFO        0x3F5
-#define FD_DIGITAL_INPUT    0x3F7 // read-only
-#define FD_CONFIG_CONTROL   0x3F7 // read-only
+#define FD_STATUS_A         0x00 // read-only
+#define FD_STATUS_B         0x01 // read-only
+#define FD_DIGITAL_OUTPUT   0x02
+#define FD_TAPE_DRIVER      0x03
+#define FD_MAIN_STATUS      0x04 // read-only
+#define FD_DATA_RATE_SELECT 0x04 // write-only
+#define FD_DATA_FIFO        0x05
+#define FD_DIGITAL_INPUT    0x07 // read-only
+#define FD_CONFIG_CONTROL   0x07 // read-only
 
 /* Commands */
 #define FD_READ_TRACK         2
@@ -43,7 +51,7 @@
 #define FD_SCAN_HIGH_OR_EQUAL 29
 
 /* Floppy types */
-#define FD_NONE 0
+#define FD_NONE      0
 #define FD_5_25_360  1
 #define FD_5_25_1_2  2
 #define FD_3_5_720   3
@@ -55,17 +63,47 @@
 /* Floppy structure */
 typedef struct
 {
-  uint8 type;
+  uint8 steprate_headunload;
+  uint8 headload_ndma;
+  uint8 motor_delay_off; /*specified in clock ticks*/
+  uint8 bytes_per_sector;
+  uint8 sectors_per_track;
+  uint8 gap_length;
+  uint8 data_length; /*used only when bytes per sector == 0*/
+  uint8 format_gap_length;
+  uint8 filler;
+  uint8 head_settle_time; /*specified in milliseconds*/
+  uint8 motor_start_time; /*specified in 1/8 seconds*/
+}floppyParameters;
+
+typedef struct
+{
+  floppyParameters parameters;
+  uint32 base;
 }fdFloppy;
 
 /* Functions */
 
 void fd_init();
 
+/* void fd_write_command(fdFloppy *f, uint8 command)
+ * Sends a command
+ */
+void fd_write_command(fdFloppy *f, uint8 command);
+
+/* void fd_reset(fdFloppy *f)
+ * Resets the controller
+ */
+void fd_reset(fdFloppy *f);
+
+
+
 void fd_motor_off(IODevice *drive);
 void fd_motor_on(IODevice *drive);
 
 void fd_recalibrate(IODevice *drive);
 void fd_seek(IODevice *drive, uint32 lba);
+
+
 
 #endif
