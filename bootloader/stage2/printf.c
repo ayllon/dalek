@@ -13,7 +13,7 @@
 static struct
 {
   uint8   *video;
-  uint8    attr;
+  uint8    attr, oldattr;
   uint16   posx, posy;
 } screen = {(uint8*)T_VIDEO, T_ATTR, 0, 0};
 
@@ -71,7 +71,8 @@ void scroll(uint8 n)
  */
 void setcolor(uint8 forecolor, uint8 backcolor)
 {
-  screen.attr = forecolor | (backcolor << 4);
+  screen.oldattr = screen.attr;
+  screen.attr    = forecolor | (backcolor << 4);
 }
 
 /* getcolor(uint8*, uint8*)
@@ -87,7 +88,7 @@ void getcolor(uint8 *forecolor, uint8 *backcolor)
  */
 void restorecolor()
 {
-  screen.attr = T_ATTR;
+  screen.attr = screen.oldattr;
 }
 
 /* updatecursor()
