@@ -6,6 +6,7 @@
 #include <cli.h> 
 #include <timer.h>
 #include <ports.h>
+#include <strings.h>
 
 // We will use the keyboard controller (8042)
 // to reset the computer (command 0xFE)
