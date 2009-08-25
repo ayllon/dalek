@@ -50,6 +50,11 @@
 #define FD_SCAN_LOW_OR_EQUAL  25
 #define FD_SCAN_HIGH_OR_EQUAL 29
 
+/* Motor */
+#define FD_MOTOR_OFF  0x00
+#define FD_MOTOR_ON   0x01
+#define FD_MOTOR_WAIT 0x02
+
 /* Floppy types */
 #define FD_NONE      0
 #define FD_5_25_360  1
@@ -79,7 +84,9 @@ typedef struct
 typedef struct
 {
   floppyParameters parameters;
-  uint32 base;
+  uint16           motor_state;
+  uint16           motor_ticks;
+  uint32           base;
 }fdFloppy;
 
 /* Functions */
@@ -91,19 +98,28 @@ void fd_init();
  */
 void fd_write_command(fdFloppy *f, uint8 command);
 
-/* void fd_reset(fdFloppy *f)
+/* int fd_reset(fdFloppy *f)
  * Resets the controller
  */
-void fd_reset(fdFloppy *f);
+int fd_reset(fdFloppy *f);
 
+/* int fd_calibrate(fdFloppy *f)
+ * Move to cylinder 0, which calibrates the drive
+ */
+int fd_calibrate(fdFloppy *drive);
 
+/* void fd_motor(fdFloppy *f, int stat)
+ * Changes the status of the motor
+ */
+void fd_motor(fdFloppy *drive, int stat);
 
-void fd_motor_off(IODevice *drive);
-void fd_motor_on(IODevice *drive);
+/* void fd_motor_kill(fdFloppy *f)
+ * Kills the floppy motor
+ */
+void fd_motor_kill(fdFloppy *f);
 
-void fd_recalibrate(IODevice *drive);
+/* seek
+ */
 void fd_seek(IODevice *drive, uint32 lba);
-
-
 
 #endif

@@ -52,4 +52,9 @@ uint8 echo(uint8 argn, const char **argv);
  */
 uint8 memory(uint8 argn, const char **argv);
 
+/** test_timer()
+ * Tests the timer
+ */
+uint8 test_timer(uint8 argn, const char **argv);
+
 #endif

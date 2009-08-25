@@ -16,13 +16,14 @@ static struct
   uint8 (*f)(uint8 argn, const char **argv);
   char  *fname;
 }command_list[] =
-  {{version, "version"},
-   {clear,   "clear"},
-   {reboot,  "reboot"},
-   {halt,    "halt"},
-   {echo,    "echo"},
-   {memory,  "memory"},
-   {NULL, NULL}};
+  {{version   , "version"   },
+   {clear     , "clear"     },
+   {reboot    , "reboot"    },
+   {halt      , "halt"      },
+   {echo      , "echo"      },
+   {memory    , "memory"    },
+   {test_timer, "test_timer"},
+   {NULL      , NULL        }};
 
 /* void CLI()
  */

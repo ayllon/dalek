@@ -26,11 +26,30 @@ static const char *drive_types[] =
 
 static uint8 irq_waiting = 0;
 
+fdFloppy fd_units[2];
+
 /* IRQ Handler */
 void fd_irq_handler(struct regs *r)
 {
   irq_waiting++;
 }
+
+/* Timer task to kill the motor
+ */
+void fd_timer(int task_id) {
+  register int i;
+
+  for(i = 0; i < sizeof(fd_units) / sizeof(fdFloppy); i++) {
+    // Kill
+    if(fd_units[i].motor_state == FD_MOTOR_WAIT) {
+      fd_units[i].motor_ticks -= 50;
+      if(fd_units[i].motor_ticks <= 0) {
+        fd_motor_kill(&fd_units[i]);
+      }
+    }
+  }
+}
+
 
 /* void fd_wait_irq()
  * Wait until we get an interrupt
@@ -39,7 +58,7 @@ void fd_wait_irq()
 {
   while(irq_waiting == 0)
     asm("hlt");
-  irq_waiting--;    
+  irq_waiting--;
 }
 
 /** Initialize */
@@ -63,7 +82,8 @@ void fd_init()
     /* Drive 0 */
     fd       = (fdFloppy*)malloc(sizeof(fdFloppy));
     /* Read parameters table */
-    fd->base = FD_PRIMARY_BASE;
+    fd->base        = FD_PRIMARY_BASE;
+    fd->motor_state = FD_MOTOR_OFF;
     fd_reset(fd);
     io_register_device("/floppy/0", drive_types[a], fd);
   }
@@ -71,8 +91,14 @@ void fd_init()
   {
     /* Drive 1 */
     fd = (fdFloppy*)malloc(sizeof(fdFloppy));
+    fd->base        = FD_SECONDARY_BASE;
+    fd->motor_state = FD_MOTOR_OFF;
+    fd_reset(fd);
     io_register_device("/floppy/1", drive_types[b], fd);
   }
+
+  // Register timer handler
+  timer_register_task(fd_timer, 50);
 }
 
 
@@ -114,18 +140,17 @@ uint8 fd_read_data(fdFloppy *f)
  */
 void fd_check_interrupt(fdFloppy *f, int *st0, int *cyl)
 {
-  fd_write_command(f->base, FD_SENSE_INTERRUPT); // Interrupt received
+  fd_write_command(f, FD_SENSE_INTERRUPT); // Interrupt received
 
   *st0 = fd_read_data(f);
   *cyl = fd_read_data(f);
 }
 
-/* void fd_reset(fdFloppy *f)
+/* int fd_reset(fdFloppy *f)
  * Resets the controller
  */
-void fd_reset(fdFloppy *f)
+int fd_reset(fdFloppy *f)
 {
-  struct regs r;
   int st0, cyl;
 
   outportb(f->base + FD_DIGITAL_OUTPUT, 0x00); // Disable
@@ -142,5 +167,76 @@ void fd_reset(fdFloppy *f)
   fd_write_command(f, 0xDF); // steprate = 3ms, unload time = 240ms
   fd_write_command(f, 0x03); // load time = 16ms, no-DMA = 1; 
 
-  // TODO: Calibrate
+  // Fail?
+  if(fd_calibrate(f)) return -1;
+
+  return 0;
+}
+
+/* int fd_calibrate(fdFloppy *f)
+ * Move to cylinder 0, which calibrates the drive
+ */
+int fd_calibrate(fdFloppy *f)
+{
+
+  int i, st0, cyl = -1; // set to bogus cylinder
+
+  fd_motor(f, FD_MOTOR_ON);
+
+  // 10 attemps
+  for(i = 0; i < 10; i++) {
+
+    fd_write_command(f, FD_RECALIBRATE);
+    fd_write_command(f, (f->base == FD_PRIMARY_BASE)?0:1); // argument is drive
+
+    fd_wait_irq();
+    fd_check_interrupt(f, &st0, &cyl);
+
+    if(st0 & 0xC0) {
+        static const char * status[] = { 0, "error", "invalid", "drive" };
+        printf("fd_calibrate: Status = %s\n", status[st0 >> 6]);
+        continue;
+    }
+
+    if(!cyl) { // found cylinder 0 ?
+        fd_motor(f, FD_MOTOR_OFF);
+        return 0;
+    }
+  }
+
+  printf("floppy_calibrate: 10 retries exhausted\n");
+  fd_motor(f, FD_MOTOR_OFF);
+  return -1;
+}
+
+/* void fd_motor(fdFloppy *f, int stat)
+ * Changes the status of the motor
+ */
+void fd_motor(fdFloppy *f, int stat)
+{
+  // ON
+  if(stat == FD_MOTOR_ON) {
+    if(f->motor_state == FD_MOTOR_OFF) {
+      // Turn on
+      outportb(f->base + FD_DIGITAL_OUTPUT, 0x1C);
+      sleep(500);
+    }
+    f->motor_state = FD_MOTOR_ON;
+  } else {
+  // OFF
+    if(f->motor_state == FD_MOTOR_WAIT) {
+      printf("fd_motor: Floppy motor state already waiting...\n");
+    }
+    f->motor_ticks = 300; // 3 seconds
+    f->motor_state = FD_MOTOR_WAIT;
+  }
+}
+
+/* void fd_motor_kill(fdFloppy *f)
+ * Kills the floppy motor
+ */
+void fd_motor_kill(fdFloppy *f)
+{
+    outportb(f->base + FD_DIGITAL_OUTPUT, 0x0C);
+    f->motor_state = FD_MOTOR_OFF;
 }
