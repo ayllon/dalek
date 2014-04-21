@@ -1,4 +1,7 @@
 /* ISR */
+
+.code32
+
 .global _isr0
 .type  _isr0, @function
 _isr0:

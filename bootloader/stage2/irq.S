@@ -1,5 +1,7 @@
 #define ASM 1
 
+.code32
+
 .global _irq0
 .global _irq1
 .global _irq2

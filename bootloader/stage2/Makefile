@@ -28,4 +28,5 @@ $(COMMANDS_O): force_look
 	-cd commands;for d in *.c; do ($(CXX) $(CFLAGS) -I ../include $(DEFINES) -c $$d); done
 
 clean:
-	$(RM) *.o $(TARGET)
+	$(RM) *.o $(TARGET) $(BUILTIN_KEYMAP)
+

@@ -24,19 +24,7 @@ force_look:
 
 # Install target
 install: all
-	# Copy stage 1
-	# In the future it would be a nice idea to keep
-	# the disk header (maybe a installer)
-	dd if=$(STAGE1) of=$(FLOPPY_IMAGE) conv=notrunc
-
-	# Now, mount the floppy (need sudo)
-	sudo mount -t vfat -o loop -o umask=000 $(FLOPPY_IMAGE) $(MOUNT_POINT)
-
-	# Copy stage 2
-	cp $(STAGE2) $(MOUNT_POINT)
-
-	# Umount
-	sudo umount $(MOUNT_POINT)
+	install.sh
 
 # Boot loader (Stage1)
 $(STAGE1): force_look
