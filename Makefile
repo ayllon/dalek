@@ -1,4 +1,4 @@
-include Makefile.inc
+include Makefile.mk
 
 CXX     = gcc
 LINKER  = ld
@@ -23,8 +23,8 @@ force_look:
 	@true
 
 # Install target
-install: all
-	install.sh
+mkfloppy: all
+	mkfloppy.sh
 
 # Boot loader (Stage1)
 $(STAGE1): force_look

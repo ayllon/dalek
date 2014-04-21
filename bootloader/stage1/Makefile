@@ -1,4 +1,4 @@
-include ../../Makefile.inc
+include ../../Makefile.mk
 
 TARGET   = ../../build/stage1.bin
 OBJFILES = stage1.o

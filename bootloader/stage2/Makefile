@@ -1,4 +1,4 @@
-include ../../Makefile.inc
+include ../../Makefile.mk
 
 TARGET   = ../../build/stage2.bin
 OBJFILES = stage2.S.o main.o memory.o printf.o strings.o ports.o idt.S.o idt.o irq.o irq.S.o timer.o keyboard.o cli.o get.o floppy.o io.o panic.o
