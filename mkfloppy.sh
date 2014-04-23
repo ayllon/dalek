@@ -14,31 +14,6 @@ function mkfs_img()
     fi
 }
 
-function mount_img()
-{
-    if [ ! -f "$2" ]; then
-        mkdir -p "$2"
-    fi
-    if [ ${PLATFORM} == "Darwin" ]; then
-        device=`hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount $1`
-        echo "Using device ${device}"
-        mount -t msdos ${device} $2
-    else
-        mount -t vfat -o loop -o umask=000 "$1" "$2"
-    fi
-}
-
-function umount_img()
-{
-    if [ ${PLATFORM} == "Darwin" ]; then
-        umount $2
-        hdiutil detach ${device}
-    else
-        sync
-        umount $2
-    fi
-}
-
 # Create the floppy
 if [ ! -f "${FLOPPY_IMAGE}" ]; then
     echo ">> Creating empty image"
@@ -53,9 +28,10 @@ dd if=build/stage1.bin of="${FLOPPY_IMAGE}" conv=notrunc #bs=1 count=450 seek=62
 
 # Now, mount the floppy and copy the file
 echo ">> Copy boot 2"
-mount_img "${FLOPPY_IMAGE}" "build/mount/"
-cp build/stage2.bin build/mount/
-umount_img "${FLOPPY_IMAGE}" "build/mount/"
+mcopy -i "${FLOPPY_IMAGE}" -o build/stage2.bin ::/
+
+echo ">> Content"
+mdir -i "${FLOPPY_IMAGE}"
 
 echo ">> Done"
 
