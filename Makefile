@@ -15,8 +15,10 @@ STAGE1 = "build/stage1.bin"
 STAGE2 = "build/stage2.bin"
 
 # Default target
-all: $(STAGE1) $(STAGE2)
+all: build $(STAGE1) $(STAGE2)
 
+build:
+	mkdir -p build
 
 # Helper
 force_look:

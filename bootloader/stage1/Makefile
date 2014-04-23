@@ -8,7 +8,7 @@ LDSCRIPT = linker.ld
 all: $(TARGET)
 
 $(TARGET): $(OBJFILES)
-	$(LD)  -T $(LDSCRIPT) -o $@ $^
+	$(LD) $(LDFLAGS) -T $(LDSCRIPT) -o $@ $^
 
 %.o: %.s
 	$(CXX) $(CFLAGS) -c -o $@ $<

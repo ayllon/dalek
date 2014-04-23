@@ -16,7 +16,7 @@ force_look:
 	@true
 
 $(TARGET): $(OBJFILES) $(BUILTIN_KEYMAP) $(COMMANDS_O)
-	$(LD)  -T $(LDSCRIPT) -o $@ $^
+	$(LD) $(LDFLAGS) -T $(LDSCRIPT) -o $@ $^
 
 %.S.o: %.S
 	$(CXX) $(CFLAGS) $(INCLUDE) $(DEFINES) -c -o $@ $<

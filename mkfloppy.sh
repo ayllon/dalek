@@ -34,6 +34,7 @@ function umount_img()
         umount $2
         hdiutil detach ${device}
     else
+        sync
         umount $2
     fi
 }
