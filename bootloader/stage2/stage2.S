@@ -59,7 +59,7 @@ stage3:
 
 /* GDT */
 gdtTable:
-	.include "gdt.S"
+	#include "gdt.S"
 
 gdtToc:
 	.word	gdtToc - gdtTable -1	/* Size of GDT */

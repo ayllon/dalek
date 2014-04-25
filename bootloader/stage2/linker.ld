@@ -3,8 +3,7 @@ ENTRY(start)
 SECTIONS
 {
   . = 0x0500;
-  .text : { *(.text) }
+  .text : { */stage2.S.o(.text) *(.text) }
   .data : { *(.data) }
-  /*.bss  : { *(.bss)  }*/
   end = .; _end = .; __end = .;
 }

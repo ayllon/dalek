@@ -3,14 +3,12 @@
  *
  * First stage boot loader
  * This file looks for and loads the second stage boot loader
- * It depends on the file system (this one is for FAT12/16),
- * in the future I plan to write for others.
+ * It depends on the file system (this one is for FAT12/16).
  */
 
 .code16
 .text
 .global start
-
 
 
 /* Start */
@@ -266,7 +264,7 @@ _searchLoop:
 	/* Not found */
 	xor %ax, %ax
 	ret
-	/* Founded :-D */
+	/* Found :-D */
 _searchMatch:
 	mov	0x1a(%di), %ax
 	ret
