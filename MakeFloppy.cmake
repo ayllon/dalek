@@ -22,3 +22,4 @@ add_custom_target (install_stage2
 )
 
 add_custom_target (floppy DEPENDS formated_floppy install_stage1 install_stage2)
+

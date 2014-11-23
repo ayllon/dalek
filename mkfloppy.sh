@@ -1,6 +1,12 @@
 #!/bin/bash
-FLOPPY_IMAGE=build/floppy.img
+BUILD_DIR=./build
+FLOPPY_IMAGE=${BUILD_DIR}/floppy.img
 PLATFORM=`uname`
+
+if [ ! -d ${BUILD_DIR} ]; then
+    echo "Missing build directory!"
+    exit 1
+fi
 
 function mkfs_img()
 {
@@ -28,7 +34,7 @@ dd if=build/stage1.bin of="${FLOPPY_IMAGE}" conv=notrunc #bs=1 count=450 seek=62
 
 # Now, mount the floppy and copy the file
 echo ">> Copy boot 2"
-mcopy -i "${FLOPPY_IMAGE}" -o build/stage2.bin ::/
+mcopy -i "${FLOPPY_IMAGE}" -os build/root/* ::/
 
 echo ">> Content"
 mdir -i "${FLOPPY_IMAGE}"

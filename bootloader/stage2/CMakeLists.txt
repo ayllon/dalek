@@ -6,4 +6,9 @@ file (GLOB source_asm "*.S")
 file (GLOB source_c   "*.c" "commands/*.c" "keymaps/*.c")
 
 add_executable (stage2.bin ${source_asm} ${source_c})
-set_target_properties (stage2.bin PROPERTIES LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld")
+set_target_properties (stage2.bin
+    PROPERTIES
+    LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/root"
+)
+
