@@ -41,14 +41,20 @@ int16 atoi(const char *s);
  *   1  if s1 > s2
  *   -1 if s1 < s2
  */
-uint8 strcmp(const char *s1, const char *s2);
+uint8 strncmp(const char *s1, const char *s2, size_t len);
 
 /**
- * Copies the string orig into dest
+ * Compares two strings
+ * Same return as strncmp
+ */
+uint8 strcmp(const char* s1, const char* s2);
+
+/**
+ * Copies the string orig into dest, always end with \0
  * dest Where to copy
  * orig From to copy
  */
-void strcpy(char *dest, const char *orig);
+void strlcpy(char *dest, const char *orig, size_t len);
 
 /**
  * Search for the first ocurrence of character c in s, returns the index (or -1 if not found)

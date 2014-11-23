@@ -44,4 +44,6 @@ char putc(char c);
 int  vprintf(const char *s, va_list args);
 int  printf(const char *s, ...);
 
-#endif 
+int log(const char* func, const char* msg, ...);
+
+#endif

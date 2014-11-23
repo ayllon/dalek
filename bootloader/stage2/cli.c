@@ -52,9 +52,9 @@ void CLI()
         argn = strsplit(buffer, string_array, " \t");
         // Search for command
         for (i = 0;
-                command_list[i].f != NULL
-                        && strcmp(string_array[0], command_list[i].fname) != 0;
-                i++)
+             command_list[i].f != NULL
+             && strncmp(string_array[0], command_list[i].fname, 128) != 0;
+             i++)
             ;
         // Run (or not)
         if (command_list[i].f != NULL)

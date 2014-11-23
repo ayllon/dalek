@@ -215,3 +215,19 @@ int vprintf(const char *s, va_list args)
 
     return i;
 }
+
+/**
+ * Prints a log entry
+ */
+int log(const char* func, const char* msg, ...)
+{
+    int i = 0;
+    setcolor(LIGHT_RED, BLUE);
+    i += printf("[%s] ", func);
+    va_list args;
+    va_start(args, msg);
+    i += vprintf(msg, args);
+    va_end(args);
+    restorecolor();
+    return i;
+}

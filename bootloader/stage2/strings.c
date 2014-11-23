@@ -127,11 +127,26 @@ int16 atoi(const char *s)
  *   1  if s1 > s2
  *   -1 if s1 < s2
  */
+uint8 strncmp(const char *s1, const char *s2, size_t len)
+{
+    int i;
+    for (i = 0; s1[i] != '\0' && i < len; i++) {
+        if (s1[i] > s2[i] || s2[i] == '\0')
+            return 1;
+        if (s1[i] < s2[i])
+            return -1;
+    }
+    // End of s1
+    return (s2[i] == '\0') ? 0 : 1;
+}
+
+/**
+ * Compares two strings
+ */
 uint8 strcmp(const char *s1, const char *s2)
 {
     int i;
     for (i = 0; s1[i] != '\0'; i++) {
-        // Differents
         if (s1[i] > s2[i] || s2[i] == '\0')
             return 1;
         if (s1[i] < s2[i])
@@ -146,16 +161,18 @@ uint8 strcmp(const char *s1, const char *s2)
  * dest Where to copy
  * orig From to copy
  */
-void strcpy(char *dest, const char *orig)
+void strlcpy(char *dest, const char *orig, size_t len)
 {
     int i;
-    for (i = 0; orig[i] != '\0'; i++) {
+    for (i = 0; orig[i] != '\0' && i < len; i++) {
         dest[i] = orig[i];
     }
+    dest[len - 1] ='\0';
 }
 
 /**
- * Search for the first ocurrence of character c in s, returns the index (or -1 if not found)
+ * Search for the first occurrence of character c in s,
+ * returns the index (or -1 if not found)
  */
 int16 strcontains(const char *s, char c)
 {
@@ -172,7 +189,8 @@ int16 strcontains(const char *s, char c)
 /**
  * Splits a string
  * s         The string
- * array     Where to put the result (i.e. array[0] is the first string). Last string begins with '\0'
+ * array     Where to put the result (i.e. array[0] is the first string).
+ *           Last string begins with '\0'
  * separator The characters used to split
  * Returns the number of strings
  */

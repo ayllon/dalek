@@ -26,16 +26,13 @@ IODevice *io_register_device(const char *name, const char *description,
     // New device
     node->device = (IODevice*) malloc(sizeof(IODevice));
     node->device->data = data;
-    strcpy(node->device->name, name);
-    strcpy(node->device->description, description);
+    strlcpy(node->device->name, name, sizeof(node->device->name));
+    strlcpy(node->device->description, description, sizeof(node->device->description));
     // Add to list at the beginning
     node->next = first_device;
     first_device = node;
     // Print a message
-    setcolor(LIGHT_RED, BLUE);
-    printf("[io_register_device()] New device \"%s\" (%s)\n", name,
-            description);
-    restorecolor();
+    log(__func__, "New device \"%s\" (%s)\n", name, description);
     // Return
     return node->device;
 }
