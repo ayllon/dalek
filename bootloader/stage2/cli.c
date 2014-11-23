@@ -10,6 +10,8 @@
 #include <get.h>
 #include <strings.h>
 
+uint8 help(uint8, const char**);
+
 /** COMMAND LIST **/
 static struct
 {
@@ -23,6 +25,7 @@ static struct
    {echo      , "echo"      },
    {memory    , "memory"    },
    {test_timer, "test_timer"},
+   {help      , "help"      },
    {NULL      , NULL        }};
 
 /* void CLI()
@@ -49,12 +52,22 @@ void CLI()
     argn = strsplit(buffer, string_array, " \t");
     // Search for command
     for(i = 0;
-	command_list[i].f != NULL && strcmp(string_array[0], command_list[i].fname) != 0;
-	i++);
+    	command_list[i].f != NULL && strcmp(string_array[0], command_list[i].fname) != 0;
+    	i++);
     // Run (or not)
     if(command_list[i].f != NULL)
-      (command_list[i].f)(argn, (char**)(string_array));
+      (command_list[i].f)(argn, (const char**)(string_array));
     else
       printf(CLI_NOT_FOUND, string_array[0]);
   }
 }
+
+uint8 help(uint8 argn, const char** argv)
+{
+	int i;
+	for (i = 0; command_list[i].f != NULL; ++i) {
+		printf("\t%s\n", command_list[i].fname);
+	}
+	return 0;
+}
+
