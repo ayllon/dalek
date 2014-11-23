@@ -8,18 +8,17 @@
 
 void panic(const char *s, ...)
 {
-  int a;
-  va_list args;
+    va_list args;
 
-  setcolor(LIGHT_RED, BLACK);
-  printf("PANIC!! ");
-  va_start(args, s);
-  vprintf(s, args);
-  va_end(args);
+    setcolor(LIGHT_RED, BLACK);
+    printf("PANIC!! ");
+    va_start(args, s);
+    vprintf(s, args);
+    va_end(args);
 
-  printf("\nSystem freeze...\n");
+    printf("\nHalting...\n");
 
-  asm("cli");
-  while(1);
-  asm("hlt");
+    asm("cli");
+    while (1)
+        asm("hlt");
 }

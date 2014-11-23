@@ -4,52 +4,51 @@
  */
 #include <get.h>
 #include <keyboard.h>
+#include <printf.h>
 
-/* char getc()
+/**
+ * Read a character from the keyboard
  */
 char getc()
 {
-  static uint16 c = 0;
+    static uint16 c = 0;
+    // Only ASCII
+    while ((c = kb_getc()) > 0xFF);
 
-  // Only ASCII
-  while((c = kb_getc()) > 0xFF);
-
-  // Return
-  return c & 0xFF;
+    return c & 0xFF;
 }
 
-/* char *gets(char*)
+/**
+ * Read a string from the keyboard
  */
-char *gets(char *dest) 
+char *gets(char *dest)
 {
-  static uint16 i;
-  static char c;
+    static uint16 i;
+    static char c;
 
-  i = 0;
+    i = 0;
 
-  // Get character
-  do{
-    c = getc();
+    // Get character
+    do {
+        c = getc();
 
-    // Actions
-    switch(c)
-    {
-    case '\b': // Delete
-      if(i > 0)
-      {
-	dest[--i] = '\0';
-	putc(c); // Echo
-      }
-      break;
-    case '\n': // EOL
-      dest[i] = '\0';
-      putc(c);
-      break;
-    default: // Rest
-      putc(dest[i++] = c);
-    }
-  }while(c != '\n'); // Until EOL
+        // Actions
+        switch (c) {
+        case '\b': // Delete
+            if (i > 0) {
+                dest[--i] = '\0';
+                putc(c); // Echo
+            }
+            break;
+        case '\n': // EOL
+            dest[i] = '\0';
+            putc(c);
+            break;
+        default: // Rest
+            putc(dest[i++] = c);
+        }
+    } while (c != '\n'); // Until EOL
 
-  // Return
-  return dest;
+    // Return
+    return dest;
 }

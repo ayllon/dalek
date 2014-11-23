@@ -13,7 +13,7 @@
 #include <types.h>
 /** DATA STRUCTURES **/
 
-// Free memory list node
+/** Free memory list node */
 struct memory_block_node
 {
   void *start;

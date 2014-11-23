@@ -11,23 +11,23 @@
 
 void main(uint16 drive)
 {
-  // Welcome
-  setcolor(WHITE, BLUE);
-  cls();
-  printf("Stage 2 loaded from drive %i\n", drive);
-  // Memory
-  mm_initialize();
-  // IDT and IRQ
-  idt_install();
-  irq_install();
-  // Install handlers
-  timer_init();
-  kb_init();
-  // Re-enable interrupts
-  asm("sti");
-  // Initialize drivers
-  fd_init();
+    // Welcome
+    setcolor(WHITE, BLUE);
+    cls();
+    printf("Stage 2 loaded from drive %i\n", drive);
+    // Memory
+    mm_initialize();
+    // IDT and IRQ
+    idt_install();
+    irq_install();
+    // Install handlers
+    timer_init();
+    kb_init();
+    // Re-enable interrupts
+    asm("sti");
+    // Initialize drivers
+    fd_init();
 
-  // Launch command line interpreter
-  CLI();
+    // Launch command line interpreter
+    CLI();
 }

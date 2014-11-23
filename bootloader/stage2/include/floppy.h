@@ -66,59 +66,58 @@
 #define FD_UNKNOWN2  7
 
 /* Floppy structure */
-typedef struct
-{
-  uint8 steprate_headunload;
-  uint8 headload_ndma;
-  uint8 motor_delay_off; /*specified in clock ticks*/
-  uint8 bytes_per_sector;
-  uint8 sectors_per_track;
-  uint8 gap_length;
-  uint8 data_length; /*used only when bytes per sector == 0*/
-  uint8 format_gap_length;
-  uint8 filler;
-  uint8 head_settle_time; /*specified in milliseconds*/
-  uint8 motor_start_time; /*specified in 1/8 seconds*/
-}floppyParameters;
+typedef struct {
+    uint8 steprate_headunload;
+    uint8 headload_ndma;
+    uint8 motor_delay_off; /*specified in clock ticks*/
+    uint8 bytes_per_sector;
+    uint8 sectors_per_track;
+    uint8 gap_length;
+    uint8 data_length; /*used only when bytes per sector == 0*/
+    uint8 format_gap_length;
+    uint8 filler;
+    uint8 head_settle_time; /*specified in milliseconds*/
+    uint8 motor_start_time; /*specified in 1/8 seconds*/
+} floppyParameters;
 
-typedef struct
-{
-  floppyParameters parameters;
-  uint16           motor_state;
-  uint16           motor_ticks;
-  uint32           base;
-}fdFloppy;
+typedef struct {
+    floppyParameters parameters;
+    uint16 motor_state;
+    uint16 motor_ticks;
+    uint32 base;
+} fdFloppy;
 
 /* Functions */
 
 void fd_init();
 
-/* void fd_write_command(fdFloppy *f, uint8 command)
+/**
  * Sends a command
  */
 void fd_write_command(fdFloppy *f, uint8 command);
 
-/* int fd_reset(fdFloppy *f)
+/**
  * Resets the controller
  */
 int fd_reset(fdFloppy *f);
 
-/* int fd_calibrate(fdFloppy *f)
+/**
  * Move to cylinder 0, which calibrates the drive
  */
 int fd_calibrate(fdFloppy *drive);
 
-/* void fd_motor(fdFloppy *f, int stat)
+/**
  * Changes the status of the motor
  */
 void fd_motor(fdFloppy *drive, int stat);
 
-/* void fd_motor_kill(fdFloppy *f)
+/**
  * Kills the floppy motor
  */
 void fd_motor_kill(fdFloppy *f);
 
-/* seek
+/**
+ * Seek
  */
 void fd_seek(IODevice *drive, uint32 lba);
 

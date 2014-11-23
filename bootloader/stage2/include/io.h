@@ -7,6 +7,8 @@
 #ifndef __IO_H__
 #define __IO_H__
 
+#include <types.h>
+
 typedef struct
 {
   // Attributes
@@ -14,10 +16,15 @@ typedef struct
   char description[32];
   void *data;
   // Methods
-  // read, write, seek, free, etc...
+  off_t   (*seek)(off_t offset, int whence);
+  ssize_t (*read)(void* buffer, size_t nbytes);
+  ssize_t (*write)(void* buffer, size_t nbytes);
+  int     (*ioctl)(unsigned long request);
+
 }IODevice;
 
-/* Register method
+/**
+ * Register method
  * Registers the new device and return the structure
  * Data should be allocated by the client
  * The custom destroy method will be called when necessary

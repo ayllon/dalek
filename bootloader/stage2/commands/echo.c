@@ -6,13 +6,16 @@
 #include <cli.h>
 #include <strings.h>
 
+/**
+ * Echoes the arguments
+ */
 uint8 echo(uint8 argn, const char **argv)
 {
-  uint8 i;
+    uint8 i;
 
-  for(i = 1; i < argn; i++)
-    printf("%s ", argv[i]);
-  printf("\n");
+    for (i = 1; i < argn; i++)
+        printf("%s ", argv[i]);
+    printf("\n");
 
-  return 0;
+    return 0;
 }

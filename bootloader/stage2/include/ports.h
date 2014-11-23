@@ -1,6 +1,5 @@
 /*
  * ports.h
- * 
  */
 #ifndef _PORTS_H_
 #define _PORTS_H_

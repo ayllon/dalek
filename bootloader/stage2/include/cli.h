@@ -22,37 +22,37 @@ void CLI();
  * and return 0 if everything is OK
  */
 
-/* clear()
+/**
  * Clear the screen
  */
 uint8 clear(uint8 argn, const char **argv);
 
-/* version()
+/**
  * Information about the stage2 loader version
  */
 uint8 version(uint8 argn, const char **argv);
 
-/** reboot()
+/**
  * Reboots
  */
 uint8 reboot(uint8 argn, const char **argv);
 
-/** halt()
+/**
  * Halts
  */
 uint8 halt(uint8 argn, const char **argv);
 
-/** echo()
+/**
  * Prints a string (or set of strings)
  */
 uint8 echo(uint8 argn, const char **argv);
 
-/** memory()
+/**
  * Prints information about the memory
  */
 uint8 memory(uint8 argn, const char **argv);
 
-/** test_timer()
+/**
  * Tests the timer
  */
 uint8 test_timer(uint8 argn, const char **argv);
