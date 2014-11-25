@@ -5,10 +5,10 @@
  * Set everything ready and jump to C code
  * In BX we have the boot drive
  */
-	
+
 #define ASM 1
 #include <memory.h>
-	
+
 .code16
 .text
 .global start
@@ -26,6 +26,9 @@ start:
 	mov	$0xFFFF, %sp
 	sti
 
+	/* Get the memory map */
+	call loadMemoryMap
+
 	/* Set the GDT */
 	lgdt	gdtToc
 
@@ -36,6 +39,40 @@ start:
 	mov	%eax, %cr0
 	ljmp	$0x08,$stage3
 
+/* Ask BIOS for the memory layout and stores it into
+ * bootInformation
+  */
+loadMemoryMap:
+	mov $memoryMapMsg, %si
+	call print16
+	mov $memoryMapEndMsg, %si
+	call print16
+	ret
+
+memoryMapMsg:
+	.string "Querying memory map\r\n"
+memoryMapEntryMsg:
+	.string "Got a segment\r\n"
+memoryMapEndMsg:
+	.string "Done\r\n"
+
+/* print function, handy for seeing what's going on
+ * Register SI: Pointer to the string
+ */
+print16:
+	pusha
+	xor	%bh, %bh
+	mov	$0x0e, %ah
+_print_loop:
+	lodsb
+	or	%al, %al
+	jz	_print_done
+	int	$0x10
+	jmp	_print_loop
+_print_done:
+	popa
+	ret
+
 /* Stage 3 point. This is in 32 bits! */
 .code32
 stage3:
@@ -44,7 +81,7 @@ stage3:
 	mov	%ax, %ds
 	mov	%ax, %ss
 	mov	%ax, %es
-	
+
 	/* Set stack */
 	mov	$(stack + STACK_SIZE), %esp
 	mov	%esp, %ebp
@@ -54,7 +91,7 @@ stage3:
 	out	%al, $0x64
 
 	/* Jump */
-	push	bootDrive
+	push	$bootInformation
 	call	main
 
 /* GDT */
@@ -65,8 +102,15 @@ gdtToc:
 	.word	gdtToc - gdtTable -1	/* Size of GDT */
 	.int	gdtTable		/* Base of GDT */
 
-/* Variables */
+/* Struct passed to main */
+.code16
+bootInformation:
 bootDrive:
-	.word	0x0000
+	.word	0
+memoryMapInfo:
+memoryMapNbEntries:
+	.word 0
+.lcomm	memoryMapEntries, 8191
+
 /* Stack */
 	.comm	stack, STACK_SIZE

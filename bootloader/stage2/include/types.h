@@ -40,4 +40,22 @@ struct regs
   unsigned int eip, cs, eflags, useresp, ss;
 };
 
+/* Data passed by assembler code to main */
+typedef struct
+{
+    uint32 base_low;
+    uint32 base_high;
+    uint32 length_low;
+    uint32 length_high;
+    uint32 type;
+    uint32 acpi;
+} __attribute__((packed)) SMAPEntry;
+
+typedef struct
+{
+    uint8 boot_drive;
+    uint8 smap_size;
+    SMAPEntry* smap_entries;
+} BootInformation;
+
 #endif
