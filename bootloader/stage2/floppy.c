@@ -98,6 +98,8 @@ void fd_init()
 
     // Register timer handler
     timer_register_task(fd_timer, 50);
+
+    log(__func__, "Floppy drives initialized");
 }
 
 

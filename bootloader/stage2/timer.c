@@ -43,7 +43,7 @@ void timer_init()
     outportb(0x40, divisor & 0xFF); // Low
     outportb(0x40, divisor >> 8);   // High
 
-    // Initialice queue
+    // Initialize queue
     register int i;
     for (i = 0; i < TIMER_MAX_TASKS; i++) {
         task_list[i].callback = NULL;
@@ -51,6 +51,8 @@ void timer_init()
 
     // Handler
     irq_install_handler(0, timer_handler);
+
+    log(__func__, "Timer initialized");
 }
 
 void sleep(uint32_t ms)

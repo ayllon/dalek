@@ -76,6 +76,8 @@ void irq_install()
     idt_set_gate(45, (uint32_t) _irq13, 0x08, IDT_RING_0 | IDT_PRESENT);
     idt_set_gate(46, (uint32_t) _irq14, 0x08, IDT_RING_0 | IDT_PRESENT);
     idt_set_gate(47, (uint32_t) _irq15, 0x08, IDT_RING_0 | IDT_PRESENT);
+
+    log(__func__, "IRQ installed");
 }
 
 /**

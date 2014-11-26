@@ -32,7 +32,7 @@ IODevice *io_register_device(const char *name, const char *description,
     node->next = first_device;
     first_device = node;
     // Print a message
-    log(__func__, "New device \"%s\" (%s)\n", name, description);
+    log(__func__, "New device \"%s\" (%s)", name, description);
     // Return
     return node->device;
 }

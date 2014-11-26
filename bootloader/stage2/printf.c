@@ -236,6 +236,7 @@ int log(const char* func, const char* msg, ...)
     va_start(args, msg);
     i += vprintf(msg, args);
     va_end(args);
+    printf("\n");
     restorecolor();
     return i;
 }

@@ -120,6 +120,8 @@ void kb_init()
     irq_install_handler(KB_IRQ, kb_handler);
     // Buffer
     kb_buffer.push_index = kb_buffer.pop_index = 0;
+
+    log(__func__, "Keyboard initialized");
 }
 
 /**
