@@ -10,16 +10,16 @@
 // Tasks register
 struct timer_task {
     timer_callback callback;
-    uint32 period;
-    uint32 last_call;
+    uint32_t period;
+    uint32_t last_call;
 };
 
 struct timer_task task_list[TIMER_MAX_TASKS];
 
 // Timer counter
-static uint32 timerCounter = 0;
+static uint32_t timerCounter = 0;
 
-void timer_handler(struct regs *regs)
+void timer_handler(Registers *regs)
 {
     timerCounter++;
     // Check tasks
@@ -53,16 +53,16 @@ void timer_init()
     irq_install_handler(0, timer_handler);
 }
 
-void sleep(uint32 ms)
+void sleep(uint32_t ms)
 {
-    static uint32 start;
+    static uint32_t start;
     start = timerCounter;
     while (timerCounter - start < ms) {
         asm("hlt");
     }
 }
 
-int timer_register_task(timer_callback func, uint32 ms)
+int timer_register_task(timer_callback func, uint32_t ms)
 {
     register int i;
     // Put it somewhere

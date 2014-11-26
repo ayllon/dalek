@@ -35,9 +35,9 @@
 #define WHITE          0xF
 
 void cls();
-void scroll(uint8 n);
-void setcolor(uint8 forecolor, uint8 backcolor);
-void getcolor(uint8 *forecolor, uint8 *backcolor);
+void scroll(uint8_t n);
+void setcolor(uint8_t forecolor, uint8_t backcolor);
+void getcolor(uint8_t *forecolor, uint8_t *backcolor);
 void restorecolor();
 void updatecursor();
 char putc(char c);

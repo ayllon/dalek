@@ -6,7 +6,7 @@
 
 #include <types.h>
 
-uint8 inportb(uint16 port);
-void outportb(uint16 port, uint8 data);
+uint8_t inportb(uint16_t port);
+void outportb(uint16_t port, uint8_t data);
 
 #endif

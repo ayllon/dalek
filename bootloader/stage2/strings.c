@@ -11,7 +11,7 @@
  * base The base
  * Returns 1 if it is, 0 if it isn't
  */
-uint8 isnum(char c, int base)
+int isnum(char c, int base)
 {
     switch (base) {
     case 2:
@@ -77,9 +77,9 @@ char *itoa(long value, char *s, int base)
 /**
  * Converts a string to an integer
  */
-int16 atoi(const char *s)
+int atoi(const char *s)
 {
-    static uint16 base, value;
+    static uint16_t base, value;
     // Get the base (2, 8, 10, 16)
     if (s[0] == '0') {
         switch (s[1]) {
@@ -127,7 +127,7 @@ int16 atoi(const char *s)
  *   1  if s1 > s2
  *   -1 if s1 < s2
  */
-uint8 strncmp(const char *s1, const char *s2, size_t len)
+int strncmp(const char *s1, const char *s2, size_t len)
 {
     int i;
     for (i = 0; s1[i] != '\0' && i < len; i++) {
@@ -143,7 +143,7 @@ uint8 strncmp(const char *s1, const char *s2, size_t len)
 /**
  * Compares two strings
  */
-uint8 strcmp(const char *s1, const char *s2)
+int strcmp(const char *s1, const char *s2)
 {
     int i;
     for (i = 0; s1[i] != '\0'; i++) {
@@ -174,9 +174,9 @@ void strlcpy(char *dest, const char *orig, size_t len)
  * Search for the first occurrence of character c in s,
  * returns the index (or -1 if not found)
  */
-int16 strcontains(const char *s, char c)
+int strcontains(const char *s, char c)
 {
-    static int16 i;
+    static int16_t i;
 
     for (i = 0; s[i] != '\0' && s[i] != c; i++)
         ;
@@ -194,9 +194,9 @@ int16 strcontains(const char *s, char c)
  * separator The characters used to split
  * Returns the number of strings
  */
-uint8 strsplit(const char *s, char **array, char *separator)
+int strsplit(const char *s, char **array, char *separator)
 {
-    static uint16 i, j, z;
+    static uint16_t i, j, z;
 
     i = 0;
     z = 0;
@@ -207,7 +207,7 @@ uint8 strsplit(const char *s, char **array, char *separator)
         for (j = i; s[j] != '\0' && strcontains(separator, s[j]) == -1; j++)
             ;
         // Copy this string into the array
-        memcpy((uint8*) array[z], (uint8*) (s + i), j - i);
+        memcpy((uint8_t*) array[z], (uint8_t*) (s + i), j - i);
         // End with '\0'
         array[z][j - i] = '\0';
         // Increment

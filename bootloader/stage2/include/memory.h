@@ -18,21 +18,20 @@ struct memory_block_node
 {
   void *start;
   struct memory_block_node *prev, *next;
-  uint32 size;
+  size_t size;
 };
 
 /** PROTOTYPES **/
 void   mm_initialize(void);
-uint32 mm_size(void);
-void  *malloc(uint32 size);
+size_t mm_size(void);
+void  *malloc(size_t size);
 void   free(void *ptr);
 
-void   mm_allocatable_free(uint32 *total, uint32 *size);
-uint32 mm_allocatable_used();
+void   mm_allocatable_free(size_t *total, size_t *size);
+size_t  mm_allocatable_used();
 
-uint8  *memcpy(uint8 *dest, uint8 *src, uint16 count);
-uint8  *memset(uint8 *dest, uint8 val, uint16 count);
-uint16 *memsetw(uint8 *dest, uint16 val, uint16 count);
+void *memcpy(void *dest, void *src, size_t count);
+void *memset(void *dest, uint8_t val, size_t count);
 
 #endif
 #endif

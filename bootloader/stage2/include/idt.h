@@ -46,7 +46,7 @@ extern void _isr29();
 extern void _isr30();
 extern void _isr31();
 
-void idt_set_gate(uint8 num, uint32 base, uint16 sel, uint8 flags);
+void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags);
 void idt_install();
 
 #endif

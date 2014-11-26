@@ -12,9 +12,9 @@
  * We will use the keyboard controller (8042)
  * to reset the computer (command 0xFE)
  */
-uint8 reboot(uint8 argn, const char **argv)
+uint8_t reboot(uint8_t argn, const char **argv)
 {
-    static uint8 temp;
+    static uint8_t temp;
 
     // Help
     if (argn > 1 && strcmp(argv[1], "help") == 0) {

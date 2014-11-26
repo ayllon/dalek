@@ -10,12 +10,12 @@
 #include <get.h>
 #include <strings.h>
 
-uint8 help(uint8, const char**);
+uint8_t help(uint8_t, const char**);
 
 /** COMMAND LIST **/
 static struct
 {
-  uint8 (*f)(uint8 argn, const char **argv);
+  uint8_t (*f)(uint8_t argn, const char **argv);
   char  *fname;
 }command_list[] = {
    {version   , "version"   },
@@ -36,7 +36,7 @@ void CLI()
     static char buffer[128];
     static char string_array_buffer[2048];
     static char *string_array[16];
-    static uint8 i, argn;
+    static uint8_t i, argn;
 
     // Initialize string array pointers
     for (i = 0; i < 16; i++)
@@ -64,7 +64,7 @@ void CLI()
     }
 }
 
-uint8 help(uint8 argn, const char** argv)
+uint8_t help(uint8_t argn, const char** argv)
 {
     int i;
     for (i = 0; command_list[i].f != NULL ; ++i) {

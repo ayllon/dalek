@@ -8,9 +8,9 @@
 /**
  * Two possible arguments: forecolor and backcolor
  */
-uint8 clear(uint8 argn, const char **argv)
+uint8_t clear(uint8_t argn, const char **argv)
 {
-    static uint8 fg, bg;
+    static uint8_t fg, bg;
 
     getcolor(&fg, &bg);
 

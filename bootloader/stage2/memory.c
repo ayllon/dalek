@@ -7,7 +7,7 @@
 #include <ports.h>
 
 // Memory information
-static uint32 mem_size = 0; // In KB!!
+static size_t mem_size = 0; // In KB!!
 
 static struct memory_block_node *mem_free_blocks_list;
 static struct memory_block_node *mem_used_blocks_list;
@@ -66,7 +66,7 @@ static void mm_get_memory_size(void)
   // mem_size in KB, we want bytes
   mem_size *= 1024;*/
 
-  uint8 lowmem, himem;
+  uint8_t lowmem, himem;
 
   // Ask CMOS
   outportb(0x70, 0x30);
@@ -81,7 +81,7 @@ static void mm_get_memory_size(void)
 /**
  * Return the memory size in bytes
  */
-uint32 mm_size(void)
+size_t mm_size(void)
 {
   return mem_size;
 }
@@ -94,7 +94,7 @@ uint32 mm_size(void)
 void mm_initialize(void)
 {
     struct memory_block_node *mem_node;
-    extern uint32 _end;
+    extern uint32_t _end;
 
     // Get memory size
     mm_get_memory_size();
@@ -105,7 +105,7 @@ void mm_initialize(void)
     mem_node = mem_used_blocks_list;
 
     mem_node->start = 0x00;
-    mem_node->size = (uint32) (mem_node + 2 * sizeof(struct memory_block_node));
+    mem_node->size = (uint32_t) (mem_node + 2 * sizeof(struct memory_block_node));
     mem_node->prev = mem_node->next = NULL;
 
     // Free memory: the rest until 1MB barrier
@@ -115,7 +115,7 @@ void mm_initialize(void)
     mem_node = mem_free_blocks_list;
 
     mem_node->start = mem_node + sizeof(struct memory_block_node);
-    mem_node->size = 0x100000 - (uint32) (mem_node->start);
+    mem_node->size = 0x100000 - (uint32_t) (mem_node->start);
     mem_node->prev = mem_node->next = NULL;
 
 }
@@ -124,11 +124,11 @@ void mm_initialize(void)
  * Returns a pointer to a free memory area and
  * marks it as used
  */
-void *malloc(uint32 size)
+void *malloc(size_t size)
 {
     struct memory_block_node *mem_node, *used_node;
-    uint32 block_size = size + sizeof(struct memory_block_node);
-    uint32 biggest = 0;
+    uint32_t block_size = size + sizeof(struct memory_block_node);
+    uint32_t biggest = 0;
 
     mem_node = mem_free_blocks_list;
 
@@ -246,13 +246,14 @@ void free(void *ptr)
 /**
  * Set to val count bytes pointed by dest
  */
-uint8 *memset(uint8 *dest, uint8 val, uint16 count)
+void *memset(void *dest, uint8_t val, size_t count)
 {
-    uint8 *end = dest + count;
+    uint8_t *end = dest + count;
+    uint8_t* p = dest;
 
-    while (dest != end) {
-        *dest = val;
-        dest++;
+    while (p != end) {
+        *p = val;
+        p++;
     }
 
     return dest;
@@ -261,14 +262,16 @@ uint8 *memset(uint8 *dest, uint8 val, uint16 count)
 /**
  * Copy memory from src to dest
  */
-uint8 *memcpy(uint8 *dest, uint8 *src, uint16 count)
+void *memcpy(void *dest, void *src, size_t count)
 {
-    unsigned char *end = dest + count;
+    uint8_t *end = dest + count;
+    uint8_t *ps = (uint8_t*)src;
+    uint8_t *pd = (uint8_t*)dest;
 
-    while (dest != end) {
-        *dest = *src;
-        dest++;
-        src++;
+    while (pd != end) {
+        *pd = *ps;
+        ps++;
+        pd++;
     }
 
     return dest;
@@ -278,7 +281,7 @@ uint8 *memcpy(uint8 *dest, uint8 *src, uint16 count)
  * Tells how much memory we have for dynamic allocation (free)
  * Puts into "total" the total amount, and in "biggest" the biggest free block
  */
-void mm_allocatable_free(uint32 *total, uint32 *biggest)
+void mm_allocatable_free(size_t *total, size_t *biggest)
 {
     struct memory_block_node *mem_node;
 
@@ -296,10 +299,10 @@ void mm_allocatable_free(uint32 *total, uint32 *biggest)
 /**
  * Tells how many of the allocatable memory is used
  */
-uint32 mm_allocatable_used()
+size_t mm_allocatable_used()
 {
     struct memory_block_node *mem_node;
-    uint32 s;
+    uint32_t s;
 
     s = 0;
 

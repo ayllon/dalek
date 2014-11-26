@@ -12,7 +12,7 @@
  * base The base
  * Returns 1 if it is, 0 if it isn't
  */
-uint8 isnum(char c, int base);
+int isnum(char c, int base);
 
 /**
  * Converts a numerical value to a string
@@ -30,7 +30,7 @@ char *itoa(long value, char *s, int base);
  * 00000   Octal
  * Else    Decimal
  */
-int16 atoi(const char *s);
+int atoi(const char *s);
 
 /**
  * Compares two strings
@@ -41,13 +41,13 @@ int16 atoi(const char *s);
  *   1  if s1 > s2
  *   -1 if s1 < s2
  */
-uint8 strncmp(const char *s1, const char *s2, size_t len);
+int strncmp(const char *s1, const char *s2, size_t len);
 
 /**
  * Compares two strings
  * Same return as strncmp
  */
-uint8 strcmp(const char* s1, const char* s2);
+int strcmp(const char* s1, const char* s2);
 
 /**
  * Copies the string orig into dest, always end with \0
@@ -59,7 +59,7 @@ void strlcpy(char *dest, const char *orig, size_t len);
 /**
  * Search for the first ocurrence of character c in s, returns the index (or -1 if not found)
  */
-int16 strcontains(const char *s, char c);
+int strcontains(const char *s, char c);
 
 /**
  * Splits a string
@@ -68,6 +68,6 @@ int16 strcontains(const char *s, char c);
  * separator The character used to split
  * Returns the number of strings
  */
-uint8 strsplit(const char *s, char **array, char *separator);
+int strsplit(const char *s, char **array, char *separator);
 
 #endif

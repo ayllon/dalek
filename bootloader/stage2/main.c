@@ -8,6 +8,8 @@
 #include <keyboard.h>
 #include <cli.h>
 #include <floppy.h>
+#include <boot.h>
+
 
 void main(BootInformation* boot_info)
 {

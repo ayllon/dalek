@@ -18,7 +18,7 @@ static void callback(int id)
 /**
  * Test timer method
  */
-uint8 test_timer(uint8 argn, const char **argv)
+uint8_t test_timer(uint8_t argn, const char **argv)
 {
     printf("Registering callback...\n");
     timer_register_task(callback, 1000);

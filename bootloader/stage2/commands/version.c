@@ -7,7 +7,7 @@
 /**
  * Just prints the version
  */
-uint8 version(uint8 argn, const char **argv)
+uint8_t version(uint8_t argn, const char **argv)
 {
     printf("\nDAleK Boot Loader (Stage 2). Version 0.0.1\n");
     printf("==========================================\n");

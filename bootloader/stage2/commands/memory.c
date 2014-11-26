@@ -10,15 +10,15 @@
 /**
  * Information about memory
  */
-uint8 memory(uint8 argn, const char **argv)
+uint8_t memory(uint8_t argn, const char **argv)
 {
     if (argn > 1 && strcmp(argv[1], "help")) {
         printf("Shows information about the memory.\nUsage: memory [help]\n");
     }
     else {
-        uint32 size = mm_size();
-        uint32 biggest, used;
-        extern uint32 start, _end;
+        size_t size = mm_size();
+        size_t biggest, used;
+        extern uint32_t start, _end;
         /* Memory size */
         printf("Memory size: %i bytes\n\t\t%i KB\n\t\t%i MB\n", size,
                 (size / 1024), (size / (1024 * 1024)));
@@ -32,7 +32,7 @@ uint8 memory(uint8 argn, const char **argv)
         printf("\tMax.Contiguous:\t%i bytes\n", biggest);
         /* Stage 2 image */
         printf("Stage 2 start address: 0x%x\n", &start);
-        size = ((uint32) &_end) - ((uint32) &start);
+        size = ((uint32_t) &_end) - ((uint32_t) &start);
         printf("\tBinary size: %i bytes (%f KB)\n", size, size / 1024.0);
     }
     return 0;

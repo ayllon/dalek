@@ -5,6 +5,8 @@
  */
 #ifndef __IRQ_H__
 #define __IRQ_H__
+
+#include <registers.h>
 #include <types.h>
 
 extern void _irq0();
@@ -25,7 +27,7 @@ extern void _irq14();
 extern void _irq15();
 
 void irq_install();
-void irq_install_handler(uint8 irq, void (*handler)(struct regs*));
-void irq_uninstall_handler(uint8 irq);
+void irq_install_handler(uint8_t irq, void (*handler)(Registers*));
+void irq_uninstall_handler(uint8_t irq);
 
 #endif

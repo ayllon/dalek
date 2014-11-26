@@ -10,17 +10,17 @@
 #include <ports.h>
 
 static struct {
-    uint8 *video;
-    uint8 attr, oldattr;
-    uint16 posx, posy;
-} screen = { (uint8*) T_VIDEO, T_ATTR, 0, 0 };
+    uint8_t *video;
+    uint8_t attr, oldattr;
+    uint16_t posx, posy;
+} screen = { (uint8_t*) T_VIDEO, T_ATTR, 0, 0 };
 
 /**
  * Clear the terminal
  */
 void cls()
 {
-    uint16 i = 0;
+    uint16_t i = 0;
 
     for (i = 0; i < T_COLUMNS * T_ROWS; i++) {
         *(screen.video + i * 2) = 0x00;
@@ -35,9 +35,9 @@ void cls()
 /**
  * Scrolls the terminal
  */
-void scroll(uint8 n)
+void scroll(uint8_t n)
 {
-    uint16 i;
+    uint16_t i;
 
     if (n > T_ROWS)
         n = T_ROWS;
@@ -64,7 +64,7 @@ void scroll(uint8 n)
 /**
  * Changes de current color for output
  */
-void setcolor(uint8 forecolor, uint8 backcolor)
+void setcolor(uint8_t forecolor, uint8_t backcolor)
 {
     screen.oldattr = screen.attr;
     screen.attr = forecolor | (backcolor << 4);
@@ -73,7 +73,7 @@ void setcolor(uint8 forecolor, uint8 backcolor)
 /**
  * Puts the color information into the variables
  */
-void getcolor(uint8 *forecolor, uint8 *backcolor)
+void getcolor(uint8_t *forecolor, uint8_t *backcolor)
 {
     *forecolor = screen.attr & 0x0F;
     *backcolor = (screen.attr & 0xF0) >> 4;
@@ -92,8 +92,8 @@ void restorecolor()
  */
 void updatecursor()
 {
-    static uint16 position;
-    static uint8 val;
+    static uint16_t position;
+    static uint8_t val;
     position = screen.posx + screen.posy * T_COLUMNS;
 
     // Set low byte

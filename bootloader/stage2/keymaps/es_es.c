@@ -9,7 +9,7 @@
 #include <types.h>
 #include <keyboard.h>
 
-uint16 kb_keymap[] = 
+uint16_t kb_keymap[] = 
 {
     0x00,    // 0x00
     KEY_ESC, //0x01
@@ -43,7 +43,7 @@ uint16 kb_keymap[] =
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // 0x7F
 };
 
-uint16 kb_shift_keymap[] = 
+uint16_t kb_shift_keymap[] = 
   {
     0x00,
     KEY_ESC,
@@ -77,7 +77,7 @@ uint16 kb_shift_keymap[] =
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // 0x7F
     };
 
-uint16 kb_altgr_keymap[] = 
+uint16_t kb_altgr_keymap[] = 
   {
     0x00,
     KEY_ESC,
@@ -111,7 +111,7 @@ uint16 kb_altgr_keymap[] =
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // 0x7F
     };
 
-uint16 kb_escaped_keymap[] = 
+uint16_t kb_escaped_keymap[] = 
 {
     0x00, // 0x00
     0x00, //0x01

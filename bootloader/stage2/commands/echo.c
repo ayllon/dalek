@@ -9,9 +9,9 @@
 /**
  * Echoes the arguments
  */
-uint8 echo(uint8 argn, const char **argv)
+uint8_t echo(uint8_t argn, const char **argv)
 {
-    uint8 i;
+    uint8_t i;
 
     for (i = 1; i < argn; i++)
         printf("%s ", argv[i]);

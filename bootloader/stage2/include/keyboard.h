@@ -52,6 +52,6 @@
 
 /** METHODS **/
 void kb_init();
-uint16 kb_getc();
+uint16_t kb_getc();
 
 #endif

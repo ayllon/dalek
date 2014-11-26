@@ -25,36 +25,36 @@ void CLI();
 /**
  * Clear the screen
  */
-uint8 clear(uint8 argn, const char **argv);
+uint8_t clear(uint8_t argn, const char **argv);
 
 /**
  * Information about the stage2 loader version
  */
-uint8 version(uint8 argn, const char **argv);
+uint8_t version(uint8_t argn, const char **argv);
 
 /**
  * Reboots
  */
-uint8 reboot(uint8 argn, const char **argv);
+uint8_t reboot(uint8_t argn, const char **argv);
 
 /**
  * Halts
  */
-uint8 halt(uint8 argn, const char **argv);
+uint8_t halt(uint8_t argn, const char **argv);
 
 /**
  * Prints a string (or set of strings)
  */
-uint8 echo(uint8 argn, const char **argv);
+uint8_t echo(uint8_t argn, const char **argv);
 
 /**
  * Prints information about the memory
  */
-uint8 memory(uint8 argn, const char **argv);
+uint8_t memory(uint8_t argn, const char **argv);
 
 /**
  * Tests the timer
  */
-uint8 test_timer(uint8 argn, const char **argv);
+uint8_t test_timer(uint8_t argn, const char **argv);
 
 #endif

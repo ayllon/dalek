@@ -11,29 +11,29 @@
 
 /* Types */
 static struct {
-    uint8 shift, caps;
-    uint8 numlock;
-    uint8 lcontrol, lalt;
-    uint8 rcontrol, ralt;
-    uint8 escaped;
+    uint8_t shift, caps;
+    uint8_t numlock;
+    uint8_t lcontrol, lalt;
+    uint8_t rcontrol, ralt;
+    uint8_t escaped;
 } kb_flags = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 /* Keymap */
-extern uint16 kb_keymap[], kb_shift_keymap[], kb_altgr_keymap[], kb_escaped_keymap[];
+extern uint16_t kb_keymap[], kb_shift_keymap[], kb_altgr_keymap[], kb_escaped_keymap[];
 
 /** Keyboard buffer **/
 static struct {
-    uint16 key[KB_BUFFER_LEN];
-    uint8 pop_index, push_index;
+    uint16_t key[KB_BUFFER_LEN];
+    uint8_t pop_index, push_index;
 } kb_buffer;
 
-void kb_handler(struct regs *regs)
+void kb_handler(Registers *regs)
 {
-    static uint8 c;
-    static uint16 key;
-    static uint8 keyDown;
+    static uint8_t c;
+    static uint16_t key;
+    static uint8_t keyDown;
 
-    // Get byte sended
+    // Get byte sent
     c = inportb(0x60);
 
     // Is the escape code?
@@ -125,9 +125,9 @@ void kb_init()
 /**
  * Returns the last key
  */
-uint16 kb_getc()
+uint16_t kb_getc()
 {
-    static uint8 index;
+    static uint8_t index;
 
     // Wait until we have something
     while (kb_buffer.push_index == kb_buffer.pop_index)

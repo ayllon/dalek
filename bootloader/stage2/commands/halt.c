@@ -10,7 +10,7 @@
  * Try to power off the computer
  * We may keep working if we can't shut down
  */
-uint8 halt(uint8 argn, const char **argv)
+uint8_t halt(uint8_t argn, const char **argv)
 {
     // Help
     if (argn > 1 && strcmp(argv[1], "help")) {

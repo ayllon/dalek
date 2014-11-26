@@ -20,7 +20,7 @@ static void *irq_routines[16] =
 /**
  * Install a handler
  */
-void irq_install_handler(uint8 irq, void (*handler)(struct regs *r))
+void irq_install_handler(uint8_t irq, void (*handler)(Registers *r))
 {
     irq_routines[irq] = handler;
 }
@@ -28,7 +28,7 @@ void irq_install_handler(uint8 irq, void (*handler)(struct regs *r))
 /**
  * Clear a handler
  */
-void irq_uninstall_handler(uint8 irq)
+void irq_uninstall_handler(uint8_t irq)
 {
     irq_routines[irq] = NULL;
 }
@@ -60,29 +60,29 @@ void irq_remap()
 void irq_install()
 {
     irq_remap();
-    idt_set_gate(32, (uint32) _irq0, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(33, (uint32) _irq1, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(34, (uint32) _irq2, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(35, (uint32) _irq3, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(36, (uint32) _irq4, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(37, (uint32) _irq5, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(38, (uint32) _irq6, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(39, (uint32) _irq7, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(40, (uint32) _irq8, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(41, (uint32) _irq9, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(42, (uint32) _irq10, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(43, (uint32) _irq11, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(44, (uint32) _irq12, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(45, (uint32) _irq13, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(46, (uint32) _irq14, 0x08, IDT_RING_0 | IDT_PRESENT);
-    idt_set_gate(47, (uint32) _irq15, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(32, (uint32_t) _irq0, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(33, (uint32_t) _irq1, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(34, (uint32_t) _irq2, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(35, (uint32_t) _irq3, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(36, (uint32_t) _irq4, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(37, (uint32_t) _irq5, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(38, (uint32_t) _irq6, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(39, (uint32_t) _irq7, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(40, (uint32_t) _irq8, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(41, (uint32_t) _irq9, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(42, (uint32_t) _irq10, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(43, (uint32_t) _irq11, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(44, (uint32_t) _irq12, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(45, (uint32_t) _irq13, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(46, (uint32_t) _irq14, 0x08, IDT_RING_0 | IDT_PRESENT);
+    idt_set_gate(47, (uint32_t) _irq15, 0x08, IDT_RING_0 | IDT_PRESENT);
 }
 
 /**
  */
-void irq_handler(struct regs *r)
+void irq_handler(Registers *r)
 {
-    void (*handler)(struct regs *r);
+    void (*handler)(Registers *r);
 
     handler = irq_routines[r->int_no - 32];
     if (handler) {
