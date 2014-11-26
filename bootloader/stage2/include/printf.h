@@ -41,6 +41,9 @@ void getcolor(uint8_t *forecolor, uint8_t *backcolor);
 void restorecolor();
 void updatecursor();
 char putc(char c);
+/* Simplified printf and vprintf functions.
+ * They do not support special formatting (as padded strings, number of decimals,...)
+ */
 int  vprintf(const char *s, va_list args);
 int  printf(const char *s, ...);
 

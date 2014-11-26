@@ -18,22 +18,25 @@ uint8_t memory(uint8_t argn, const char **argv)
     else {
         size_t size = mm_size();
         size_t biggest, used;
-        extern uint32_t start, _end;
+        extern off_t start, _end;
         /* Memory size */
-        printf("Memory size: %i bytes\n\t\t%i KB\n\t\t%i MB\n", size,
-                (size / 1024), (size / (1024 * 1024)));
+        printf("Memory size: %z bytes\n\t\t%z KB\n\t\t%z MB\n",
+               size, size / 1024, size / (1024 * 1024));
         /* Allocatable */
         mm_allocatable_free(&size, &biggest);
         used = mm_allocatable_used();
-        printf("Allocatable memory: %i bytes (%f KB)\n", size + used,
-                (size + used) / 1024.0);
-        printf("\tUsed:\t%i bytes (%f KB)\n", used, used / 1024.0);
-        printf("\tFree:\t%i bytes (%f KB)\n", size, size / 1024.0);
-        printf("\tMax.Contiguous:\t%i bytes\n", biggest);
+        printf("Allocatable memory: %z bytes (%f KB)\n",
+               size + used, ((double)(size + used)) / 1024.0);
+        printf("\tUsed:\t%z bytes (%f KB)\n",
+               used, ((double)used) / 1024.0);
+        printf("\tFree:\t%z bytes (%f KB)\n",
+                size, ((double)size) / 1024.0);
+        printf("\tMax.Contiguous:\t%z bytes\n", biggest);
         /* Stage 2 image */
         printf("Stage 2 start address: 0x%x\n", &start);
         size = ((uint32_t) &_end) - ((uint32_t) &start);
-        printf("\tBinary size: %i bytes (%f KB)\n", size, size / 1024.0);
+        printf("\tBinary size: %z bytes (%f KB)\n",
+               size, ((double)size) / 1024.0);
     }
     return 0;
 }

@@ -28,8 +28,8 @@ typedef unsigned long long int uint64_t;
 #error Only i386 is supported
 #endif
 
-typedef int64_t  off_t;
-typedef uint64_t size_t;
-typedef int64_t  ssize_t;
+typedef int32_t  off_t;
+typedef uint32_t size_t;
+typedef int32_t  ssize_t;
 
 #endif

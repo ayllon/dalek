@@ -180,7 +180,7 @@ int printf(const char *s, ...)
 int vprintf(const char *s, va_list args)
 {
     unsigned int i;
-    static char buffer[16], *p;
+    static char buffer[64], *p;
 
     for (i = 0; *s; s++) {
         // Field
@@ -193,13 +193,21 @@ int vprintf(const char *s, va_list args)
                 break;
             case 'd':
             case 'i':
-                itoa(va_arg(args, int), buffer, 10);
+                itoa_s(va_arg(args, int), 10, buffer, sizeof(buffer));
                 p = buffer;
                 goto string;
             case 'x':
             case 'X':
             case 'p':
-                itoa(va_arg(args, int), buffer, 16);
+                itoa_s(va_arg(args, int), 16, buffer, sizeof(buffer));
+                p = buffer;
+                goto string;
+            case 'z':
+                itoa_s(va_arg(args, size_t), 10, buffer, sizeof(buffer));
+                p = buffer;
+                goto string;
+            case 'f':
+                ftoa_s(va_arg(args, double), 2, buffer, sizeof(buffer));
                 p = buffer;
                 goto string;
             case 's':

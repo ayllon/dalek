@@ -33,9 +33,9 @@ int isnum(char c, int base)
  * value  The value
  * s      Where to put the string
  * base   The base
- * Returns s if success
+ * Returns Pointer to the \0 byte, or NULL on failure
  */
-char *itoa(long value, char *s, int base)
+char *itoa_last(long value, int base, char *s, size_t bsize)
 {
     char *p = s;
     char *p1, *p2;
@@ -54,7 +54,6 @@ char *itoa(long value, char *s, int base)
     /* Divide UD by DIVISOR until UD == 0. */
     do {
         int remainder = ud % divisor;
-
         *p++ = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
     } while (ud /= divisor);
 
@@ -71,7 +70,44 @@ char *itoa(long value, char *s, int base)
         p1++;
         p2--;
     }
-    return s;
+    return p;
+}
+
+/**
+ * Converts a numerical value to a string
+ * value  The value
+ * s      Where to put the string
+ * base   The base
+ * Returns s if success
+ */
+char *itoa_s(long value, int base, char *buffer, size_t bsize)
+{
+    if (itoa_last(value, base, buffer, bsize))
+        return buffer;
+    return NULL;
+}
+
+/**
+ * Converts a floating point number into a string
+ */
+char *ftoa_s(double value, int decimals, char* buffer, size_t bsize)
+{
+    long integer = (long)value;
+    char* p = itoa_last(integer, 10, buffer, bsize);
+    if (p - buffer < bsize) {
+        *p = '.';
+        ++p;
+    }
+    char digit;
+    while (decimals) {
+        value *= 10;
+        digit = (long)(value) % 10;
+        *p = '0' + digit;
+        ++p;
+        decimals--;
+    }
+    *p = '\0';
+    return buffer;
 }
 
 /**
@@ -167,7 +203,7 @@ void strlcpy(char *dest, const char *orig, size_t len)
     for (i = 0; orig[i] != '\0' && i < len; i++) {
         dest[i] = orig[i];
     }
-    dest[len - 1] ='\0';
+    dest[i] = dest[len - 1] ='\0';
 }
 
 /**

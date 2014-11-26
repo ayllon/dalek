@@ -17,11 +17,22 @@ int isnum(char c, int base);
 /**
  * Converts a numerical value to a string
  * value  The value
- * s      Where to put the string
  * base   The base
- * Returns s if success
+ * buffer Where to put the string
+ * bsize  Buffer size
+ * Returns buffer on success
  */
-char *itoa(long value, char *s, int base);
+char *itoa_s(long value, int base, char *buffer, size_t bsize);
+
+/**
+ * Converts a floating point numerical value to a string
+ * value    The value
+ * decimals How many decimals
+ * buffer   Where to put the string
+ * bsize    Buffer size
+ * Returns s on success
+ */
+char *ftoa_s(double value, int decimals, char *buffer, size_t bsize);
 
 /**
  * Converts a string to an integer
