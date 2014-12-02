@@ -26,3 +26,8 @@ add_custom_target (install_stage2
 )
 
 add_custom_target (floppy DEPENDS "${FLOPPY_IMAGE}" install_stage1 install_stage2)
+
+add_custom_target (boot
+    COMMAND qemu-system-i386 -fda "${FLOPPY_IMAGE}"
+    DEPENDS floppy
+)
