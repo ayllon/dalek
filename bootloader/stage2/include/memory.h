@@ -10,6 +10,7 @@
 
 #ifndef ASM
 
+#include <boot.h>
 #include <types.h>
 /** DATA STRUCTURES **/
 
@@ -22,7 +23,7 @@ struct memory_block_node
 };
 
 /** PROTOTYPES **/
-void   mm_initialize(void);
+void   mm_initialize(const BootInformation* boot_info);
 size_t mm_size(void);
 void  *malloc(size_t size);
 void   free(void *ptr);

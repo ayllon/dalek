@@ -7,7 +7,7 @@
 #include <ports.h>
 
 // Memory information
-static size_t mem_size = 0; // In KB!!
+static uint64_t mem_size = 0; // In KB!!
 
 static struct memory_block_node *mem_free_blocks_list;
 static struct memory_block_node *mem_used_blocks_list;
@@ -15,67 +15,15 @@ static struct memory_block_node *mem_used_blocks_list;
 /**
  * Test the memory to get the size
  */
-static void mm_get_memory_size(void)
+static void mm_get_memory_size(const BootInformation* boot_info)
 {
-  /*  register uint32 *mem, a, cr0;
-  uint32 mem_count;
-
-  // Copy of CR0
-  asm volatile ("movl %%cr0, %%eax" : "=a"(cr0));
-
-  // Flush the cache and invalidate
-  asm volatile ("wbinvd");
-
-  // Disable cache, writeback, and use 32 bit mode
-  asm volatile("movl %%eax, %%cr0" : : "a"(cr0 | 0x00000001 | 0x40000000 | 0x20000000));
-
-  // Remember the 640 KB barrier. Start at 1 MB
-  mem_count = 1024 * 1024;
-  mem_size  = 1024;
-
-  do{
-    mem_size += 1024;
-    printf("Memory testing %i KB ...\r", mem_size);
-    mem_count += 1024 * 1024;
-    mem = (uint32*)mem_count;
-
-    a = *mem;
-
-    *mem = 0x55AA55AA;
-    // The empty ASM tells the compiler that it musn't
-    // rely on its registers as saved variables
-    asm("":::"memory");
-    if(*mem != 0x55AA55AA)
-      mem_count = 0;
-    else
-    {
-      *mem = 0xAA55AA55;
-      asm("":::"memory");
-      if(*mem != 0xAA55AA55)
-	mem_count = 0;
+    uint16_t i;
+    for (i = 0; i < boot_info->smap_size; ++i) {
+        const SMAPEntry *ent = &(boot_info->smap_entries[i]);
+        if (SMAP_ENTRY_IS_USABLE(ent)) {
+            mem_size += ent->length;
+        }
     }
-    asm("":::"memory");
-    *mem = a;
-  }while(mem_size < 4190208 && mem_count != 0);
-
-  printf("\n");
-
-  // Restore CR0
-  asm volatile("movl %%eax, %%cr0": : "a"(cr0));
-
-  // mem_size in KB, we want bytes
-  mem_size *= 1024;*/
-
-  uint8_t lowmem, himem;
-
-  // Ask CMOS
-  outportb(0x70, 0x30);
-  lowmem = inportb(0x71);
-  outportb(0x70, 0x31);
-  himem = inportb(0x71);
-
-  // Concatenate
-  mem_size = ((himem * 0xFF) + lowmem) * 1024;
 }
 
 /**
@@ -88,16 +36,14 @@ size_t mm_size(void)
 
 /**
  * Initializes the memory manager
- * Only the memory between the loader image and 1MB barrier can be used
- * (Kernel image is loaded from 1MB)
  */
-void mm_initialize(void)
+void mm_initialize(const BootInformation* boot_info)
 {
     struct memory_block_node *mem_node;
     extern uint32_t _end;
 
     // Get memory size
-    mm_get_memory_size();
+    mm_get_memory_size(boot_info);
 
     // Start of free memory
     mem_used_blocks_list = (struct memory_block_node*) &_end;

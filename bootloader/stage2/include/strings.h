@@ -12,17 +12,20 @@
  * base The base
  * Returns 1 if it is, 0 if it isn't
  */
-int isnum(char c, int base);
+int isdigit(char c, int base);
 
 /**
  * Converts a numerical value to a string
  * value  The value
  * base   The base
+ * pad    Padding character
+ * w      Expected length
  * buffer Where to put the string
  * bsize  Buffer size
  * Returns buffer on success
  */
-char *itoa_s(long value, int base, char *buffer, size_t bsize);
+char *itoa_s(long long value, int base, char pad, int w, char *buffer,
+        size_t bsize);
 
 /**
  * Converts a floating point numerical value to a string

@@ -184,26 +184,54 @@ int vprintf(const char *s, va_list args)
 
     for (i = 0; *s; s++) {
         // Field
-        if (*s != '%')
+        if (*s != '%') {
             putc(*s);
+        }
         else {
+            unsigned lcount = 0;
+            char pad = 0;
+            int w = 0;
+format:
             switch (*(++s)) {
+            case '0':
+                if (!pad) {
+                    pad = '0';
+                    goto format;
+                }
+                /* no break */
+            case '1': case '2': case '3': case '4':
+            case '5': case '6': case '7': case '8': case '9':
+                w = w * 10 + (*s - '0');
+                goto format;
+            case 'l':
+                ++lcount;
+                goto format;
             case 'c':
                 putc((char) (va_arg(args, int)));
                 break;
             case 'd':
             case 'i':
-                itoa_s(va_arg(args, int), 10, buffer, sizeof(buffer));
+                if (lcount < 2)
+                    itoa_s(va_arg(args, int), 10, pad, w, buffer, sizeof(buffer));
+                else
+                    itoa_s(va_arg(args, long long int), 10, pad, w, buffer, sizeof(buffer));
                 p = buffer;
                 goto string;
             case 'x':
             case 'X':
-            case 'p':
-                itoa_s(va_arg(args, int), 16, buffer, sizeof(buffer));
+                if (lcount < 2)
+                    itoa_s(va_arg(args, int), 16, pad, w, buffer, sizeof(buffer));
+                else
+                    itoa_s(va_arg(args, long long int), 16, pad, w, buffer, sizeof(buffer));
                 p = buffer;
                 goto string;
             case 'z':
-                itoa_s(va_arg(args, size_t), 10, buffer, sizeof(buffer));
+                itoa_s(va_arg(args, size_t), 10, pad, w, buffer, sizeof(buffer));
+                p = buffer;
+                goto string;
+            case 'p':
+                itoa_s((long) va_arg(args, void*), 16, '0',
+                        sizeof(void*) * 2, buffer, sizeof(buffer));
                 p = buffer;
                 goto string;
             case 'f':

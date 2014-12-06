@@ -11,7 +11,7 @@
  * base The base
  * Returns 1 if it is, 0 if it isn't
  */
-int isnum(char c, int base)
+int isdigit(char c, int base)
 {
     switch (base) {
     case 2:
@@ -28,17 +28,33 @@ int isnum(char c, int base)
     }
 }
 
+static char* str_reverse(char* begin, char* end)
+{
+    char* p1 = begin;
+    char* p2 = end - 1;
+    while (p1 < p2) {
+        char tmp = *p1;
+        *p1 = *p2;
+        *p2 = tmp;
+        p1++;
+        p2--;
+    }
+    return begin;
+}
+
 /**
  * Converts a numerical value to a string
- * value  The value
- * s      Where to put the string
- * base   The base
+ * value   The value
+ * base    The base (i.e 16 or 10)
+ * reverse Normally 1 to get the proper string.
+ *         If 0, leave the buffer from less significant to most
+ * s       Where to put the string
+ * base    The base
  * Returns Pointer to the \0 byte, or NULL on failure
  */
-char *itoa_last(long value, int base, char *s, size_t bsize)
+static char *itoa_last(long long value, int base, int reverse, char *s, size_t bsize)
 {
     char *p = s;
-    char *p1, *p2;
     unsigned long ud = value;
     int divisor = 10;
 
@@ -61,14 +77,8 @@ char *itoa_last(long value, int base, char *s, size_t bsize)
     *p = 0;
 
     /* Reverse BUF. */
-    p1 = s;
-    p2 = p - 1;
-    while (p1 < p2) {
-        char tmp = *p1;
-        *p1 = *p2;
-        *p2 = tmp;
-        p1++;
-        p2--;
+    if (reverse) {
+        str_reverse(s, p);
     }
     return p;
 }
@@ -80,12 +90,23 @@ char *itoa_last(long value, int base, char *s, size_t bsize)
  * base   The base
  * Returns s if success
  */
-char *itoa_s(long value, int base, char *buffer, size_t bsize)
+char *itoa_s(long long value, int base, char pad, int w, char *buffer,
+        size_t bsize)
 {
-    if (itoa_last(value, base, buffer, bsize))
-        return buffer;
-    return NULL;
+    char *p = itoa_last(value, base, 0, buffer, bsize);
+    if (!p)
+        return NULL;
+    int len = p - buffer;
+    int remaining = w - len;
+    while (remaining > 0) {
+        *p = pad;
+        ++p;
+        --remaining;
+    }
+    *p = '\0';
+    return str_reverse(buffer, p);
 }
+
 
 /**
  * Converts a floating point number into a string
@@ -93,7 +114,7 @@ char *itoa_s(long value, int base, char *buffer, size_t bsize)
 char *ftoa_s(double value, int decimals, char* buffer, size_t bsize)
 {
     long integer = (long)value;
-    char* p = itoa_last(integer, 10, buffer, bsize);
+    char* p = itoa_last(integer, 10, 1, buffer, bsize);
     if (p - buffer < bsize) {
         *p = '.';
         ++p;
@@ -138,7 +159,7 @@ int atoi(const char *s)
 
     // Calculate
     value = 0;
-    while (isnum(*s, base)) {
+    while (isdigit(*s, base)) {
         value *= base;
 
         if (*s >= '0' && *s <= '9')

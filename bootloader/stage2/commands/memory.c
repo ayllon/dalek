@@ -20,7 +20,7 @@ uint8_t memory(uint8_t argn, const char **argv)
         size_t biggest, used;
         extern off_t start, _end;
         /* Memory size */
-        printf("Memory size: %z bytes\n\t\t%z KB\n\t\t%z MB\n",
+        printf("Usable memory size: %z bytes\n\t\t%z KB\n\t\t%z MB\n",
                size, size / 1024, size / (1024 * 1024));
         /* Allocatable */
         mm_allocatable_free(&size, &biggest);
