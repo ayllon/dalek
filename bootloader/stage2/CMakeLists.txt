@@ -9,10 +9,15 @@ add_definitions (
     "-ffreestanding -fno-stack-protector -fno-builtin -nostdinc -Wall -m32"
 )
 
-add_executable (stage2.bin ${source_asm} ${source_c})
-set_target_properties (stage2.bin
+add_executable (stage2.elf ${source_asm} ${source_c})
+set_target_properties (stage2.elf
     PROPERTIES
     LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/root"
 )
 
+# Extract raw binary and debug symbols
+add_custom_target(stage2.bin
+    COMMAND i386-elf-objcopy -O binary "stage2.elf" "${CMAKE_BINARY_DIR}/root/stage2.bin"
+    COMMAND i386-elf-objcopy --only-keep-debug "stage2.elf" "${CMAKE_BINARY_DIR}/root/stage2.sym"
+    DEPENDS stage2.elf
+)
