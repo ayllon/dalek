@@ -13,7 +13,17 @@ Then, run these commands
 mkdir build
 cd build
 cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/modules/Platform/i386.cmake -DCMAKE_BUILD_TYPE=DEBUG ..
-make
+make floppy
+```
+
+### Linux
+Assuming a 64 bits Linux machine, you will need to install cmake, gcc and mtools.
+
+```bash
+mkdir build
+cd build
+cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/modules/Platform/i386.cmake -DCMAKE_BUILD_TYPE=DEBUG ..
+make floppy
 ```
 
 ## Debugging

@@ -8,10 +8,9 @@ if (APPLE)
         COMMAND mv "${FLOPPY_IMAGE}.cdr" "${FLOPPY_IMAGE}"
     )
 else (APPLE)
-    add_custom_target (OUTPUT "${FLOPPY_IMAGE}"
+    add_custom_command (OUTPUT "${FLOPPY_IMAGE}"
         COMMAND dd if="/dev/zero" of="${FLOPPY_IMAGE}" bs=1024 count=1440
         COMMAND mkfs.vfat "${FLOPPY_IMAGE}" -n "DALEK"
-        DEPENDS "${FLOPPY_IMAGE}"
     )
 endif (APPLE)
 
@@ -27,7 +26,3 @@ add_custom_target (install_stage2
 
 add_custom_target (floppy DEPENDS "${FLOPPY_IMAGE}" install_stage1 install_stage2)
 
-add_custom_target (boot
-    COMMAND qemu-system-i386 -fda "${FLOPPY_IMAGE}"
-    DEPENDS floppy
-)
