@@ -67,34 +67,33 @@
 
 /* Floppy structure */
 typedef struct {
-    uint8_t steprate_headunload;
-    uint8_t headload_ndma;
-    uint8_t motor_delay_off; /*specified in clock ticks*/
-    uint8_t bytes_per_sector;
-    uint8_t sectors_per_track;
-    uint8_t gap_length;
-    uint8_t data_length; /*used only when bytes per sector == 0*/
-    uint8_t format_gap_length;
-    uint8_t filler;
-    uint8_t head_settle_time; /*specified in milliseconds*/
-    uint8_t motor_start_time; /*specified in 1/8 seconds*/
-} floppyParameters;
+    int heads;
+    int tracks;
+    int spt; // sectors per track
+    int block_size;
+    uint32_t size;
+} FloppyGeometry;
+#define FLOPPY_UNSUPPORTED {0, 0, 0, 0, 0}
 
 typedef struct {
-    floppyParameters parameters;
+    FloppyGeometry geometry;
     uint16_t motor_state;
     uint16_t motor_ticks;
     uint32_t base;
+    uint32_t block;
+    off_t    block_offset;
 } Floppy;
 
-/* Functions */
 
+/**
+ * Initializes drivers
+ */
 void fd_init();
 
 /**
  * Sends a command
  */
-void fd_write_command(Floppy *f, uint8_t command);
+void fd_send_byte(Floppy *f, uint8_t command);
 
 /**
  * Resets the controller
@@ -103,6 +102,7 @@ int fd_reset(Floppy *f);
 
 /**
  * Move to cylinder 0, which calibrates the drive
+ * Initializes drivers
  */
 int fd_calibrate(Floppy *drive);
 
@@ -117,8 +117,11 @@ void fd_motor(Floppy *drive, int stat);
 void fd_motor_kill(Floppy *f);
 
 /**
- * Seek
+ * IO methods
  */
-void fd_seek(IODevice *drive, uint32_t lba);
+off_t   fd_seek(IODevice* self, off_t offset, int whence);
+ssize_t fd_read(IODevice* self, void* buffer, size_t nbytes);
+ssize_t fd_write(IODevice* self, void* buffer, size_t nbytes);
+int     fd_ioctl(IODevice* self, unsigned long request);
 
 #endif

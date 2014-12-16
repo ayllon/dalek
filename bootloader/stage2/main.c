@@ -11,6 +11,9 @@
 #include <boot.h>
 
 
+int errno = 0;
+
+
 void main(BootInformation* boot_info)
 {
     // Welcome
@@ -39,6 +42,20 @@ void main(BootInformation* boot_info)
     asm("sti");
     // Initialize drivers
     fd_init();
+
+    // Try reading something from floppy
+    IODevice* dev = io_device_get_by_name("fd0");
+    if (dev) {
+        printf("Position before: %lld\n", dev->seek(dev, 0, SEEK_CUR));
+        dev->seek(dev, 0, SEEK_SET);
+        printf("Position after: %lld\n", dev->seek(dev, 0, SEEK_CUR));
+
+        char buffer[512] = {0};
+        if (dev->read(dev, buffer, sizeof(buffer)) >= 0)
+            printf("%s\n", buffer);
+        else
+            log(LOG_WARN, __func__, "Could not read: %d", errno);
+    }
 
     // Launch command line interpreter
     CLI();

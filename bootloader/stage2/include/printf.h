@@ -34,19 +34,30 @@
 #define LIGHT_BROWN    0xE
 #define WHITE          0xF
 
+/* Log level */
+#define LOG_INFO    0
+#define LOG_WARN    1
+#define LOG_ERROR   2
+
+/* Terminal primitives */
 void cls();
 void scroll(uint8_t n);
 void setcolor(uint8_t forecolor, uint8_t backcolor);
 void getcolor(uint8_t *forecolor, uint8_t *backcolor);
+void setforecolor(uint8_t forecolor);
 void restorecolor();
 void updatecursor();
 char putc(char c);
+
 /* Simplified printf and vprintf functions.
- * They do not support special formatting (as padded strings, number of decimals,...)
+ * Only partial formatting support
  */
 int  vprintf(const char *s, va_list args);
 int  printf(const char *s, ...);
 
-int log(const char* func, const char* msg, ...);
+/**
+ * Prints a log entry
+ */
+int log(int level, const char* func, const char* msg, ...);
 
 #endif

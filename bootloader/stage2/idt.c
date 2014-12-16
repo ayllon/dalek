@@ -96,7 +96,7 @@ void idt_install()
     /* Points the processor's internal register to the new IDT */
     idt_load();
 
-    log(__func__, "IDT installed");
+    log(LOG_INFO, __func__, "IDT installed");
 }
 
 

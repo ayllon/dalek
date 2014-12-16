@@ -52,7 +52,7 @@ void timer_init()
     // Handler
     irq_install_handler(0, timer_handler);
 
-    log(__func__, "Timer initialized");
+    log(LOG_INFO, __func__, "Timer initialized");
 }
 
 void sleep(uint32_t ms)

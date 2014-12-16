@@ -62,12 +62,22 @@ void scroll(uint8_t n)
 }
 
 /**
- * Changes de current color for output
+ * Changes the current output color
  */
 void setcolor(uint8_t forecolor, uint8_t backcolor)
 {
     screen.oldattr = screen.attr;
     screen.attr = forecolor | (backcolor << 4);
+}
+
+/**
+ * Sets the front color
+ */
+void setforecolor(uint8_t forecolor)
+{
+    screen.oldattr = screen.attr;
+    screen.attr &= 0xF0;
+    screen.attr |= forecolor;
 }
 
 /**
@@ -255,10 +265,17 @@ format:
 /**
  * Prints a log entry
  */
-int log(const char* func, const char* msg, ...)
+int log(int level, const char* func, const char* msg, ...)
 {
     int i = 0;
-    setcolor(LIGHT_RED, BLUE);
+    switch (level) {
+        case LOG_WARN:
+            setforecolor(LIGHT_BROWN);
+            break;
+        default:
+            setforecolor(LIGHT_GREY);
+    }
+
     i += printf("[%s] ", func);
     va_list args;
     va_start(args, msg);

@@ -121,7 +121,7 @@ void kb_init()
     // Buffer
     kb_buffer.push_index = kb_buffer.pop_index = 0;
 
-    log(__func__, "Keyboard initialized");
+    log(LOG_INFO, __func__, "Keyboard initialized");
 }
 
 /**
