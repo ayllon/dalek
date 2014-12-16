@@ -8,4 +8,3 @@ SECTIONS
   .data : { *(.data) }
   end = .; _end = .; __end = .;
 }
-

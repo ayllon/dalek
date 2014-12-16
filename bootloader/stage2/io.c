@@ -9,10 +9,10 @@
 #include <strings.h>
 #include <printf.h>
 
-typedef struct STIONode {
+struct IONode {
     IODevice *device;
-    struct STIONode *next;
-} IONode;
+    struct IONode *next;
+};
 
 static IONode *first_device = NULL;
 
@@ -35,4 +35,39 @@ IODevice *io_register_device(const char *name, const char *description,
     log(__func__, "New device \"%s\" (%s)", name, description);
     // Return
     return node->device;
+}
+
+
+IONode* io_device_list_begin(void)
+{
+    return first_device;
+}
+
+
+IONode* io_device_list_next(IONode* node)
+{
+    if (node)
+        return node->next;
+    return NULL;
+}
+
+
+IODevice* io_device_get_device(IONode* node)
+{
+    if (node)
+        return node->device;
+    return NULL;
+}
+
+/**
+ * Get the device with the given name
+ */
+IODevice* io_device_get_by_name(const char* name)
+{
+    IONode* iterator = io_device_list_begin();
+    while (iterator) {
+        if (strcmp(iterator->device->name, name) == 0)
+            return iterator->device;
+    }
+    return NULL;
 }

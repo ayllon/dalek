@@ -1,6 +1,5 @@
 /*
  * echo.c
- *
  */
 #include <printf.h>
 #include <cli.h>

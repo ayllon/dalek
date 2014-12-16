@@ -25,4 +25,3 @@ add_custom_target (stage2.bin
     COMMAND "${OBJCOPY}" --only-keep-debug "stage2.elf" "${CMAKE_BINARY_DIR}/root/stage2.sym"
     DEPENDS stage2.elf "${CMAKE_BINARY_DIR}/root"
 )
-

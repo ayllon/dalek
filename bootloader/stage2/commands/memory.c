@@ -1,6 +1,5 @@
 /*
  * memory.c
- *
  */
 #include <printf.h>
 #include <cli.h>

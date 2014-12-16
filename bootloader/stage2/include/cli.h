@@ -67,4 +67,9 @@ uint8_t memory(uint8_t argn, const char **argv);
  */
 uint8_t test_timer(uint8_t argn, const char **argv);
 
+/**
+ * Get a list of registered devices
+ */
+uint8_t devices(uint8_t argn, const char **argv);
+
 #endif

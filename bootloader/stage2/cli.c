@@ -12,7 +12,6 @@
 
 uint8_t help(uint8_t, const char**);
 
-
 /* void CLI()
  */
 void CLI()

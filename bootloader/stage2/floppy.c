@@ -85,7 +85,7 @@ void fd_init()
         fd->base = FD_PRIMARY_BASE;
         fd->motor_state = FD_MOTOR_OFF;
         fd_reset(fd);
-        io_register_device("/floppy/0", drive_types[a], fd);
+        io_register_device("fd0", drive_types[a], fd);
     }
     if (drives & 0xF) {
         /* Drive 1 */
@@ -93,7 +93,7 @@ void fd_init()
         fd->base = FD_SECONDARY_BASE;
         fd->motor_state = FD_MOTOR_OFF;
         fd_reset(fd);
-        io_register_device("/floppy/1", drive_types[b], fd);
+        io_register_device("fd1", drive_types[b], fd);
     }
 
     // Register timer handler

@@ -21,8 +21,9 @@ struct IODevice
   ssize_t (*read)(IODevice* self, void* buffer, size_t nbytes);
   ssize_t (*write)(IODevice* self, void* buffer, size_t nbytes);
   int     (*ioctl)(IODevice* self, unsigned long request);
-
 };
+
+typedef struct IONode IONode;
 
 /**
  * Register method
@@ -31,5 +32,25 @@ struct IODevice
  * The custom destroy method will be called when necessary
  */
 IODevice *io_register_device(const char *name, const char *description, void *data);
+
+/**
+ * Get the first IONode
+ */
+IONode* io_device_list_begin(void);
+
+/**
+ * Get the next IONode entry
+ */
+IONode* io_device_list_next(IONode* node);
+
+/**
+ * Get the IODevice associated with the node
+ */
+IODevice* io_device_get_device(IONode* node);
+
+/**
+ * Get the device with the given name
+ */
+IODevice* io_device_get_by_name(const char* name);
 
 #endif
