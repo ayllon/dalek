@@ -36,3 +36,6 @@ uint8_t clear(uint8_t argn, const char **argv)
     // Return
     return 0;
 }
+
+
+REGISTER_CLI_COMMAND("clear", "Clear the screen", clear);

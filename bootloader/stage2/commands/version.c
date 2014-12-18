@@ -15,3 +15,6 @@ uint8_t version(uint8_t argn, const char **argv)
     printf("Licensed under the GPL license.\n\n");
     return 0;
 }
+
+
+REGISTER_CLI_COMMAND("version", "Show information about the version", version);

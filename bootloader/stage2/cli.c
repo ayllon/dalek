@@ -12,22 +12,6 @@
 
 uint8_t help(uint8_t, const char**);
 
-/** COMMAND LIST **/
-static struct
-{
-  uint8_t (*f)(uint8_t argn, const char **argv);
-  char  *fname;
-}command_list[] = {
-   {version   , "version"   },
-   {clear     , "clear"     },
-   {reboot    , "reboot"    },
-   {halt      , "halt"      },
-   {echo      , "echo"      },
-   {memory    , "memory"    },
-   {test_timer, "test_timer"},
-   {help      , "help"      },
-   {NULL      , NULL        }
-};
 
 /* void CLI()
  */
@@ -45,30 +29,33 @@ void CLI()
     // Always
     while (1) {
         // Prompt
-        printf("%s", CLI_PROMPT);
+        printf("?: ");
         // Read command line
         gets(buffer);
         // Split
         argn = strsplit(buffer, string_array, " \t");
         // Search for command
-        for (i = 0;
-             command_list[i].f != NULL
-             && strncmp(string_array[0], command_list[i].fname, 128) != 0;
-             i++)
-            ;
+        CliCommand* cmd;
+        for (cmd = __start__k_cli_cmd; cmd != __stop__k_cli_cmd; ++cmd) {
+             if (strncmp(string_array[0], cmd->name, 128) == 0)
+                 break;
+        }
         // Run (or not)
-        if (command_list[i].f != NULL)
-            (command_list[i].f)(argn, (const char**) (string_array));
+        if (cmd != __stop__k_cli_cmd)
+            (cmd->func)(argn, (const char**) (string_array));
         else
-            printf(CLI_NOT_FOUND, string_array[0]);
+            printf("Wrong command \"%s\"\n", string_array[0]);
     }
 }
 
 uint8_t help(uint8_t argn, const char** argv)
 {
-    int i;
-    for (i = 0; command_list[i].f != NULL ; ++i) {
-        printf("\t%s\n", command_list[i].fname);
+    CliCommand* cmd;
+    for (cmd = __start__k_cli_cmd; cmd != __stop__k_cli_cmd; ++cmd) {
+        printf("%s\n\t%s\n", cmd->name, cmd->description);
     }
     return 0;
 }
+
+REGISTER_CLI_COMMAND("help", "Display the console help", help);
+

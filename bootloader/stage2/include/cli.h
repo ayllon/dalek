@@ -8,8 +8,18 @@
 #define __CLI_H__
 #include <types.h>
 
-#define CLI_PROMPT    "?: "
-#define CLI_NOT_FOUND "Wrong command \"%s\"\n"
+typedef struct {
+    const char* name;
+    const char* description;
+    uint8_t (*func)(uint8_t argn, const char** argv);
+} CliCommand;
+
+#define REGISTER_CLI_COMMAND(cmd, descr, func) \
+    static const CliCommand k_cli_cmd_##func __attribute__((section("_k_cli_cmd"), unused)) = {cmd, descr, func};
+
+/* Defined by the linker */
+extern CliCommand __start__k_cli_cmd[];
+extern CliCommand __stop__k_cli_cmd[];
 
 /* void CLI()
  * Main function of the Command Line Interpreter

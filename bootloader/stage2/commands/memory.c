@@ -40,3 +40,6 @@ uint8_t memory(uint8_t argn, const char **argv)
     }
     return 0;
 }
+
+
+REGISTER_CLI_COMMAND("memory", "Show information about the system memory", memory);

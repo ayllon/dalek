@@ -38,3 +38,6 @@ uint8_t reboot(uint8_t argn, const char **argv)
     // If we are here, bad thing
     return 1;
 }
+
+
+REGISTER_CLI_COMMAND("reboot", "Reboot the system", reboot);

@@ -25,3 +25,6 @@ uint8_t test_timer(uint8_t argn, const char **argv)
 
     return 0;
 }
+
+
+REGISTER_CLI_COMMAND("test_timer", "Just test the timer", test_timer);

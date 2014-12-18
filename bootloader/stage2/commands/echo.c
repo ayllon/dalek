@@ -19,3 +19,6 @@ uint8_t echo(uint8_t argn, const char **argv)
 
     return 0;
 }
+
+
+REGISTER_CLI_COMMAND("echo", "Echo the string(s)", echo);
