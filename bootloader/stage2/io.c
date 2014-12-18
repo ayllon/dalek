@@ -68,6 +68,7 @@ IODevice* io_device_get_by_name(const char* name)
     while (iterator) {
         if (strcmp(iterator->device->name, name) == 0)
             return iterator->device;
+        iterator = io_device_list_next(iterator);
     }
     return NULL;
 }

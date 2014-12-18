@@ -80,6 +80,8 @@ typedef struct {
     uint16_t motor_state;
     uint16_t motor_ticks;
     uint32_t base;
+    uint8_t  drive_number;
+    // Position
     uint32_t block;
     off_t    block_offset;
 } Floppy;

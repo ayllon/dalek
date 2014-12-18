@@ -109,6 +109,7 @@ void fd_init()
             fd->base = FD_PRIMARY_BASE;
             fd->motor_state = FD_MOTOR_OFF;
             fd->geometry = drive_geometry[a];
+            fd->drive_number = 0;
             fd_reset(fd);
             IODevice* fd0 = io_register_device("fd0", drive_types[a], fd);
             fd_device_bind_methods(fd0);
@@ -121,9 +122,10 @@ void fd_init()
     if (b) {
         if (drive_geometry[b].heads != 0) {
             fd = (Floppy*) malloc(sizeof(Floppy));
-            fd->base = FD_SECONDARY_BASE;
+            fd->base = FD_PRIMARY_BASE;
             fd->motor_state = FD_MOTOR_OFF;
             fd->geometry = drive_geometry[b];
+            fd->drive_number = 1;
             fd_reset(fd);
             IODevice* fd1 = io_register_device("fd1", drive_types[b], fd);
             fd_device_bind_methods(fd1);
@@ -182,8 +184,8 @@ int fd_reset(Floppy *fd)
 {
     int st0, cyl;
 
-    outportb(fd->base + FD_DIGITAL_OUTPUT, 0x00); // Disable
-    outportb(fd->base + FD_DIGITAL_OUTPUT, 0x0C); // Enable
+    outportb(fd->base + FD_DIGITAL_OUTPUT, 0x00 | fd->drive_number); // Disable
+    outportb(fd->base + FD_DIGITAL_OUTPUT, 0x0C | fd->drive_number); // Enable
     // Wait interrupt
     fd_wait_irq();
     // Check interrupt
@@ -205,20 +207,20 @@ int fd_reset(Floppy *fd)
 }
 
 
-int fd_calibrate(Floppy *f)
+int fd_calibrate(Floppy *fd)
 {
     int i, st0, cyl = -1; // set to bogus cylinder
 
-    fd_motor(f, FD_MOTOR_ON);
+    fd_motor(fd, FD_MOTOR_ON);
 
     // 10 attempts
     for (i = 0; i < 10; i++) {
-        fd_wait_ready(f);
-        fd_send_byte(f, FD_RECALIBRATE);
-        fd_send_byte(f, (f->base == FD_PRIMARY_BASE) ? 0 : 1); // argument is drive
+        fd_wait_ready(fd);
+        fd_send_byte(fd, FD_RECALIBRATE);
+        fd_send_byte(fd, (fd->base == FD_PRIMARY_BASE) ? 0 : 1); // argument is drive
 
         fd_wait_irq();
-        fd_check_interrupt(f, &st0, &cyl);
+        fd_check_interrupt(fd, &st0, &cyl);
 
         if (st0 & 0xC0) {
             static const char * status[] = { 0, "error", "invalid", "drive" };
@@ -227,43 +229,43 @@ int fd_calibrate(Floppy *f)
         }
 
         if (!cyl) { // found cylinder 0 ?
-            fd_motor(f, FD_MOTOR_OFF);
+            fd_motor(fd, FD_MOTOR_OFF);
             return 0;
         }
     }
 
     printf("floppy_calibrate: 10 retries exhausted\n");
-    fd_motor(f, FD_MOTOR_OFF);
+    fd_motor(fd, FD_MOTOR_OFF);
     return -1;
 }
 
 
-void fd_motor(Floppy *f, int stat)
+void fd_motor(Floppy *fd, int stat)
 {
     // ON
     if (stat == FD_MOTOR_ON) {
-        if (f->motor_state == FD_MOTOR_OFF) {
+        if (fd->motor_state == FD_MOTOR_OFF) {
             // Turn on
-            outportb(f->base + FD_DIGITAL_OUTPUT, 0x1C);
+            outportb(fd->base + FD_DIGITAL_OUTPUT, 0x1C | fd->drive_number);
             sleep(500);
         }
-        f->motor_state = FD_MOTOR_ON;
+        fd->motor_state = FD_MOTOR_ON;
     }
     // OFF
     else {
-        if (f->motor_state == FD_MOTOR_WAIT) {
+        if (fd->motor_state == FD_MOTOR_WAIT) {
             printf("fd_motor: Floppy motor state already waiting...\n");
         }
-        f->motor_ticks = 300; // 3 seconds
-        f->motor_state = FD_MOTOR_WAIT;
+        fd->motor_ticks = 300; // 3 seconds
+        fd->motor_state = FD_MOTOR_WAIT;
     }
 }
 
 
-void fd_motor_kill(Floppy *f)
+void fd_motor_kill(Floppy *fd)
 {
-    outportb(f->base + FD_DIGITAL_OUTPUT, 0x0C);
-    f->motor_state = FD_MOTOR_OFF;
+    outportb(fd->base + FD_DIGITAL_OUTPUT, 0x0C | fd->drive_number);
+    fd->motor_state = FD_MOTOR_OFF;
 }
 
 
