@@ -6,7 +6,7 @@ file (GLOB source_asm "*.S")
 file (GLOB source_c   "*.c" "commands/*.c" "keymaps/*.c")
 
 add_definitions (
-    "-ffreestanding -fno-stack-protector -fno-builtin -nostdinc -Wall -m32"
+    "-ffreestanding -fno-stack-protector -fno-builtin -nostdinc -Wall -m32 -O2"
 )
 
 add_executable (stage2.elf ${source_asm} ${source_c})

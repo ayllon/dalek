@@ -17,13 +17,13 @@ struct timer_task {
 struct timer_task task_list[TIMER_MAX_TASKS];
 
 // Timer counter
-static uint32_t timerCounter = 0;
+static volatile uint64_t timerCounter = 0;
 
 void timer_handler(Registers *regs)
 {
     timerCounter++;
     // Check tasks
-    register int i;
+    int i;
     for (i = 0; i < TIMER_MAX_TASKS; i++) {
         if (task_list[i].callback
                 && timerCounter - task_list[i].last_call
@@ -57,7 +57,7 @@ void timer_init()
 
 void sleep(uint32_t ms)
 {
-    static uint32_t start;
+    uint64_t start;
     start = timerCounter;
     while (timerCounter - start < ms) {
         asm("hlt");

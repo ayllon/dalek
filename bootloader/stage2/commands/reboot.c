@@ -14,7 +14,7 @@
  */
 uint8_t reboot(uint8_t argn, const char **argv)
 {
-    static uint8_t temp;
+    uint8_t temp;
 
     // Help
     if (argn > 1 && strcmp(argv[1], "help") == 0) {

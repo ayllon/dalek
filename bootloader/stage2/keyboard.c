@@ -22,16 +22,16 @@ static struct {
 extern uint16_t kb_keymap[], kb_shift_keymap[], kb_altgr_keymap[], kb_escaped_keymap[];
 
 /** Keyboard buffer **/
-static struct {
+static volatile struct {
     uint16_t key[KB_BUFFER_LEN];
     uint8_t pop_index, push_index;
 } kb_buffer;
 
 void kb_handler(Registers *regs)
 {
-    static uint8_t c;
-    static uint16_t key;
-    static uint8_t keyDown;
+    uint8_t c;
+    uint16_t key;
+    uint8_t keyDown;
 
     // Get byte sent
     c = inportb(0x60);
@@ -129,7 +129,7 @@ void kb_init()
  */
 uint16_t kb_getc()
 {
-    static uint8_t index;
+    uint8_t index;
 
     // Wait until we have something
     while (kb_buffer.push_index == kb_buffer.pop_index)

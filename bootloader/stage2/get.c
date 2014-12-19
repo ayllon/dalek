@@ -11,7 +11,7 @@
  */
 char getc()
 {
-    static uint16_t c = 0;
+    uint16_t c = 0;
     // Only ASCII
     while ((c = kb_getc()) > 0xFF);
 
@@ -23,8 +23,8 @@ char getc()
  */
 char *gets(char *dest)
 {
-    static uint16_t i;
-    static char c;
+    uint16_t i;
+    char c;
 
     i = 0;
 

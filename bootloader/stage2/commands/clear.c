@@ -10,7 +10,7 @@
  */
 uint8_t clear(uint8_t argn, const char **argv)
 {
-    static uint8_t fg, bg;
+    uint8_t fg, bg;
 
     getcolor(&fg, &bg);
 

@@ -136,7 +136,7 @@ char *ftoa_s(double value, int decimals, char* buffer, size_t bsize)
  */
 int atoi(const char *s)
 {
-    static uint16_t base, value;
+    uint16_t base, value;
     // Get the base (2, 8, 10, 16)
     if (s[0] == '0') {
         switch (s[1]) {
@@ -233,7 +233,7 @@ void strlcpy(char *dest, const char *orig, size_t len)
  */
 int strcontains(const char *s, char c)
 {
-    static int16_t i;
+    int16_t i;
 
     for (i = 0; s[i] != '\0' && s[i] != c; i++)
         ;
@@ -253,7 +253,7 @@ int strcontains(const char *s, char c)
  */
 int strsplit(const char *s, char **array, char *separator)
 {
-    static uint16_t i, j, z;
+    uint16_t i, j, z;
 
     i = 0;
     z = 0;

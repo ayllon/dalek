@@ -9,7 +9,7 @@
 #include <memory.h>
 #include <ports.h>
 
-static struct {
+static volatile struct {
     uint8_t *video;
     uint8_t attr, oldattr;
     uint16_t posx, posy;
@@ -102,8 +102,8 @@ void restorecolor()
  */
 void updatecursor()
 {
-    static uint16_t position;
-    static uint8_t val;
+    uint16_t position;
+    uint8_t val;
     position = screen.posx + screen.posy * T_COLUMNS;
 
     // Set low byte
@@ -190,7 +190,7 @@ int printf(const char *s, ...)
 int vprintf(const char *s, va_list args)
 {
     unsigned int i;
-    static char buffer[64], *p;
+    char buffer[64], *p;
 
     for (i = 0; *s; s++) {
         // Field

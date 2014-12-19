@@ -15,7 +15,7 @@ typedef struct {
 } CliCommand;
 
 #define REGISTER_CLI_COMMAND(cmd, descr, func) \
-    static const CliCommand k_cli_cmd_##func __attribute__((section("__k_cli_cmd_"#func), unused)) = {cmd, descr, func};
+    static const CliCommand k_cli_cmd_##func __attribute__((section("__k_cli_cmd_"#func), used)) = {cmd, descr, func};
 
 /* Defined in linker.ld */
 extern CliCommand __start___k_cli_cmd[];
