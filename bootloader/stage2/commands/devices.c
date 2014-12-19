@@ -1,6 +1,7 @@
 /**
  * devices.c
  */
+#include <cli.h>
 #include <io.h>
 #include <printf.h>
 
@@ -15,3 +16,5 @@ uint8_t devices(uint8_t argn, const char **argv)
     }
     return 0;
 }
+
+REGISTER_CLI_COMMAND("devices", "Show information about the registered devices", devices);
