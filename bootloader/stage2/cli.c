@@ -16,10 +16,10 @@ uint8_t help(uint8_t, const char**);
  */
 void CLI()
 {
-    static char buffer[128];
-    static char string_array_buffer[2048];
-    static char *string_array[16];
-    static uint8_t i, argn;
+    char buffer[128];
+    char string_array_buffer[2048];
+    char *string_array[16];
+    uint8_t i, argn;
 
     // Initialize string array pointers
     for (i = 0; i < 16; i++)
@@ -35,12 +35,12 @@ void CLI()
         argn = strsplit(buffer, string_array, " \t");
         // Search for command
         CliCommand* cmd;
-        for (cmd = __start__k_cli_cmd; cmd != __stop__k_cli_cmd; ++cmd) {
+        for (cmd = __start___k_cli_cmd; cmd != __stop___k_cli_cmd; ++cmd) {
              if (strncmp(string_array[0], cmd->name, 128) == 0)
                  break;
         }
         // Run (or not)
-        if (cmd != __stop__k_cli_cmd)
+        if (cmd != __stop___k_cli_cmd)
             (cmd->func)(argn, (const char**) (string_array));
         else
             printf("Wrong command \"%s\"\n", string_array[0]);
@@ -50,7 +50,7 @@ void CLI()
 uint8_t help(uint8_t argn, const char** argv)
 {
     CliCommand* cmd;
-    for (cmd = __start__k_cli_cmd; cmd != __stop__k_cli_cmd; ++cmd) {
+    for (cmd = __start___k_cli_cmd; cmd != __stop___k_cli_cmd; ++cmd) {
         printf("%s\n\t%s\n", cmd->name, cmd->description);
     }
     return 0;
