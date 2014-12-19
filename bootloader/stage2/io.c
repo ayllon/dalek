@@ -14,7 +14,14 @@ struct IONode {
     struct IONode *next;
 };
 
-static IONode *first_device = NULL;
+static IONode *first_device;
+
+
+void io_init()
+{
+    first_device = NULL;
+}
+
 
 IODevice *io_register_device(const char *name, const char *description,
         void *data)

@@ -30,6 +30,11 @@ struct IODevice
 typedef struct IONode IONode;
 
 /**
+ * Initialize the subsystem
+ */
+void io_init();
+
+/**
  * Register method
  * Registers the new device and return the structure
  * Data should be allocated by the client

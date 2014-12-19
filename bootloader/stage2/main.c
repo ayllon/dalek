@@ -40,6 +40,8 @@ void main(BootInformation* boot_info)
     kb_init();
     // Re-enable interrupts
     asm("sti");
+    // Initialize IO
+    io_init();
     // Initialize drivers
     fd_init();
 
