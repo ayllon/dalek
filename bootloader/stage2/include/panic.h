@@ -7,6 +7,6 @@
 /**
  * Show a message and freeze the system
  */
-void panic(const char *s, ...);
+void panic(const char* f, const char *s, ...);
 
 #endif

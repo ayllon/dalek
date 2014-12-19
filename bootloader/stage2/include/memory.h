@@ -31,7 +31,7 @@ void   free(void *ptr);
 void   mm_allocatable_free(size_t *total, size_t *size);
 size_t  mm_allocatable_used();
 
-void *memcpy(void *dest, void *src, size_t count);
+void *memcpy(void *dest, const void *src, size_t count);
 void *memset(void *dest, uint8_t val, size_t count);
 
 #endif

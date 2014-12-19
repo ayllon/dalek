@@ -50,6 +50,9 @@
 #define FD_SCAN_LOW_OR_EQUAL  25
 #define FD_SCAN_HIGH_OR_EQUAL 29
 
+/* Gap */
+#define FD_GAP3               27
+
 /* Motor */
 #define FD_MOTOR_OFF  0x00
 #define FD_MOTOR_ON   0x01
@@ -67,13 +70,12 @@
 
 /* Floppy structure */
 typedef struct {
-    int heads;
-    int tracks;
-    int spt; // sectors per track
-    int block_size;
-    uint32_t size;
+    uint32_t heads;
+    uint32_t tracks;
+    uint32_t spt; // sectors per track
+    uint32_t block_size;
 } FloppyGeometry;
-#define FLOPPY_UNSUPPORTED {0, 0, 0, 0, 0}
+#define FLOPPY_UNSUPPORTED {0, 0, 0, 0}
 
 typedef struct {
     FloppyGeometry geometry;
@@ -81,9 +83,9 @@ typedef struct {
     uint16_t motor_ticks;
     uint32_t base;
     uint8_t  drive_number;
-    // Position
+    uint32_t n_blocks;
+    // Position in blocks
     uint32_t block;
-    off_t    block_offset;
 } Floppy;
 
 

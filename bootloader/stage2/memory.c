@@ -208,10 +208,10 @@ void *memset(void *dest, uint8_t val, size_t count)
 /**
  * Copy memory from src to dest
  */
-void *memcpy(void *dest, void *src, size_t count)
+void *memcpy(void *dest, const void *src, size_t count)
 {
     uint8_t *end = dest + count;
-    uint8_t *ps = (uint8_t*)src;
+    const uint8_t * ps = (const uint8_t*)src;
     uint8_t *pd = (uint8_t*)dest;
 
     while (pd != end) {

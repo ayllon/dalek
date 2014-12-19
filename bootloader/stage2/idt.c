@@ -128,11 +128,11 @@ static char *isr_exception_string[] =
 void isr_base_handler(Registers *r)
 {
     if (r->int_no < 19) {
-        panic("[isr_base_handler(%i, %i)] %s\n", r->int_no, r->err_code,
+        panic(__func__, "(%i, %i)] %s\n", r->int_no, r->err_code,
                 isr_exception_string[r->int_no]);
     }
     else {
-        panic("[isr_base_handler(%i, %i)] Reserved exception\n", r->int_no,
+        panic(__func__, "(%i, %i)] Reserved exception\n", r->int_no,
                 r->err_code);
     }
 }

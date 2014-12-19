@@ -3,7 +3,12 @@
  *
  * Floppy controller
  *
+ * Based on code from mystran
+ *      http://forum.osdev.org/viewtopic.php?t=13538
+ * And from Fabian Nunez & Pablo Guerrero Rosel
+ *      https://gitorious.org/nopos/nopos/source/kernel/floppy.c
  */
+#include <dma.h>
 #include <errno.h>
 #include <floppy.h>
 #include <irq.h>
@@ -28,19 +33,21 @@ static const char *drive_types[] =
 
 static FloppyGeometry drive_geometry[] =
 {
-    FLOPPY_UNSUPPORTED,         // none
-    FLOPPY_UNSUPPORTED,         // 360k 5.25
-    FLOPPY_UNSUPPORTED,         // 1.2MB 5.25
-    FLOPPY_UNSUPPORTED,         // 720k 3.5
-    {2, 80, 18, 512, 1474560},  // 1.44MB 3,5
-    FLOPPY_UNSUPPORTED,         // 2.88MB 3.5
-    FLOPPY_UNSUPPORTED,         // unknown
-    FLOPPY_UNSUPPORTED          // unknown
+    FLOPPY_UNSUPPORTED, // none
+    FLOPPY_UNSUPPORTED, // 360k 5.25
+    FLOPPY_UNSUPPORTED, // 1.2MB 5.25
+    FLOPPY_UNSUPPORTED, // 720k 3.5
+    {2, 80, 18, 512},   // 1.44MB 3,5
+    FLOPPY_UNSUPPORTED, // 2.88MB 3.5
+    FLOPPY_UNSUPPORTED, // unknown
+    FLOPPY_UNSUPPORTED  // unknown
 };
 
 static uint8_t irq_waiting = 0;
 
 Floppy fd_units[2];
+
+static char fd_dma_buffer[512] __attribute__((aligned(32768))); // 32K
 
 /* IRQ Handler */
 void fd_irq_handler(Registers *r)
@@ -107,9 +114,10 @@ void fd_init()
         if (drive_geometry[a].heads != 0) {
             fd = (Floppy*) malloc(sizeof(Floppy));
             fd->base = FD_PRIMARY_BASE;
+            fd->drive_number = 0;
             fd->motor_state = FD_MOTOR_OFF;
             fd->geometry = drive_geometry[a];
-            fd->drive_number = 0;
+            fd->n_blocks = fd->geometry.spt * fd->geometry.tracks * fd->geometry.heads;
             fd_reset(fd);
             IODevice* fd0 = io_register_device("fd0", drive_types[a], fd);
             fd_device_bind_methods(fd0);
@@ -123,9 +131,10 @@ void fd_init()
         if (drive_geometry[b].heads != 0) {
             fd = (Floppy*) malloc(sizeof(Floppy));
             fd->base = FD_PRIMARY_BASE;
+            fd->drive_number = 1;
             fd->motor_state = FD_MOTOR_OFF;
             fd->geometry = drive_geometry[b];
-            fd->drive_number = 1;
+            fd->n_blocks = fd->geometry.spt * fd->geometry.tracks * fd->geometry.heads;
             fd_reset(fd);
             IODevice* fd1 = io_register_device("fd1", drive_types[b], fd);
             fd_device_bind_methods(fd1);
@@ -145,15 +154,19 @@ void fd_init()
 /**
  * Waits until the floppy is ready
  */
-void fd_wait_ready(Floppy *f)
+static int fd_wait_ready(Floppy *f)
 {
     uint32_t i = 0;
     while (!(0x80 & inportb(f->base + FD_MAIN_STATUS))) {
         sleep(10); // Sleep 10 milliseconds
         i++;
-        if (i > 600) // If we have slept 6000 ms, abort
-            panic("[fd_wait_ready()] Floppy timeout\n");
+        // If we have slept 6000 ms, abort
+        if (i > 600) {
+            errno = EBUSY;
+            return -1;
+        }
     }
+    return 0;
 }
 
 
@@ -169,14 +182,17 @@ uint8_t fd_recv_byte(Floppy *fd)
 }
 
 
-void fd_check_interrupt(Floppy *fd, int *st0, int *cyl)
+static int fd_check_interrupt(Floppy *fd, int *st0, int *cyl)
 {
-    fd_wait_ready(fd);
+    if (fd_wait_ready(fd) < 0)
+        return -1;
+
     fd_send_byte(fd, FD_SENSE_INTERRUPT); // Interrupt received
 
     fd_wait_ready(fd);
     *st0 = fd_recv_byte(fd);
     *cyl = fd_recv_byte(fd);
+    return 0;
 }
 
 
@@ -189,7 +205,8 @@ int fd_reset(Floppy *fd)
     // Wait interrupt
     fd_wait_irq();
     // Check interrupt
-    fd_check_interrupt(fd, &st0, &cyl);
+    if (fd_check_interrupt(fd, &st0, &cyl) < 0)
+        return -1;
     // Set transfer speed to 500 Kb/s
     outportb(fd->base + FD_CONFIG_CONTROL, 0x00);
 
@@ -220,7 +237,8 @@ int fd_calibrate(Floppy *fd)
         fd_send_byte(fd, (fd->base == FD_PRIMARY_BASE) ? 0 : 1); // argument is drive
 
         fd_wait_irq();
-        fd_check_interrupt(fd, &st0, &cyl);
+        if (fd_check_interrupt(fd, &st0, &cyl) < 0)
+            return -1;
 
         if (st0 & 0xC0) {
             static const char * status[] = { 0, "error", "invalid", "drive" };
@@ -286,7 +304,9 @@ static int fd_physical_seek(Floppy *fd, int head, int cyl)
     fd_send_byte(fd, cyl);
 
     int st0, resulting_cyl;
-    fd_check_interrupt(fd, &st0, &resulting_cyl);
+    if (fd_check_interrupt(fd, &st0, &resulting_cyl) < 0)
+        return -1;
+
     if (st0 != 0x20 || (resulting_cyl != cyl)) {
         errno = EIO;
         return -1;
@@ -299,63 +319,228 @@ off_t fd_seek(IODevice* self, off_t offset, int whence)
 {
     Floppy* fd = (Floppy*)self->data;
 
-    // Convert between block + offset into total offset
-    off_t current_position = (fd->block * fd->geometry.block_size)
-            + fd->block_offset;
-
-    // Calculate new offset
-    off_t new_position;
-    switch (whence) {
-        case SEEK_SET:
-            new_position = offset;
-            break;
-        case SEEK_CUR:
-            new_position = current_position + offset;
-            break;
-        default:
-            errno = ENOSYS;
-            return -1;
-    }
-
-    // Nothing to do?
-    if (current_position == new_position)
-        return current_position;
-
-    // Beyond the size?
-    if (new_position >= fd->geometry.size) {
+    // Only 512 aligned seeks allowed
+    if (offset % 512 != 0) {
+        log(LOG_ERROR, __func__,
+                "Floppy only admits being addressed in multiples of 512 (got %z)",
+                offset);
         errno = EINVAL;
         return -1;
     }
 
-    // Calculate new block, and offset within the block
-    fd->block = new_position / 512;
-    fd->block_offset = new_position % 512;
+    off_t block_offset = offset / 512;
 
-    return new_position;
+    // Calculate new offset
+    uint32_t new_block;
+    switch (whence) {
+        case SEEK_SET:
+            new_block = block_offset;
+            break;
+        case SEEK_CUR:
+            new_block = fd->block + block_offset;
+            break;
+        default:
+            new_block = fd->n_blocks + block_offset;
+    }
+
+    // Nothing to do?
+    if (fd->block == new_block)
+        return block_offset;
+
+    // Beyond the size?
+    if (new_block >= fd->n_blocks) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    fd->block = new_block;
+    return fd->block;
+}
+
+
+static void fd_setup_dma(Floppy* fd, void* buffer, size_t nbytes, uint8_t write)
+{
+    union {
+        uint8_t  b[4];
+        uint32_t v;
+    } address, length;
+
+    asm("cli");
+
+    address.v = (uint32_t)buffer;
+    length.v  = (uint32_t)nbytes - 1;
+
+    // Buffer address only 24 bits
+    if (address.v >> 24)
+        panic("%s: Buffer address uses more than 24 bits (%p)", __func__, buffer);
+    // nbytes only 16 bits
+    if (length.v >> 16)
+        panic("%s: DMA length uses more than 16 bits (%z)", __func__, nbytes);
+    // Within boundaries
+    if (((address.v & 0xFFFF) + length.v) >> 16)
+        panic("%s: Buffer address plus length exceeds 16 bits (%p+%d)", __func__, buffer, nbytes);
+
+    uint8_t mode = write ? 0x4A: 0x46;
+
+    outportb(DMA_SINGLE_CHANNEL_MASK, 0x06);        // mask channel 2
+    outportb(DMA_FLIP_FLOP, 0xFF);
+    outportb(DMA_CHAN2_ADDRESS, address.b[0]);      // buffer low byte
+    outportb(DMA_CHAN2_ADDRESS, address.b[1]);      // buffer high byte
+    outportb(DMA_CHAN2_PAGE_ADDRESS, address.b[2]); // external page register
+    outportb(DMA_FLIP_FLOP, 0xFF);
+    outportb(DMA_CHAN2_COUNT, length.b[0]);         // nbytes low byte
+    outportb(DMA_CHAN2_COUNT, length.b[1]);         // nbytes high byte
+    outportb(DMA_MODE, mode);
+    outportb(DMA_SINGLE_CHANNEL_MASK, 0x02);        // unmask channel 2
+
+    asm("sti");
+}
+
+
+static int fd_errno_mapping(int st0, int st1, int st2, int bps)
+{
+    if (st0 & 0xC0) {
+        panic(__func__, "Invalid command sent to the floppy controller");
+    }
+    else if(st1 & 0x80) {
+        log(LOG_ERROR, __func__, "End of cylinder");
+        return EIO;
+    }
+    else if (st0 & 0x08) {
+        log(LOG_ERROR, __func__, "Drive not ready");
+        return EIO;
+    }
+    else if (st1 & 0x20) {
+        log(LOG_ERROR, __func__, "CRC error");
+        return EIO;
+    }
+    else if (st1 & 0x10) {
+        log(LOG_ERROR, __func__, "Controller timeout");
+        return EIO;
+    }
+    else if (st1 & 0x04) {
+        log(LOG_ERROR, __func__, "No data found");
+        return EIO;
+    }
+    else if ((st1|st2) & 0x01) {
+        log(LOG_ERROR, __func__, "No address mark found");
+        return EIO;
+    }
+    else if (st2 & 0x40) {
+        log(LOG_ERROR, __func__, "Deleted address mark");
+        return EIO;
+    }
+    else if(st2 & 0x20) {
+        log(LOG_ERROR, __func__, "CRC error in data");
+        return EIO;
+    }
+    else if (st2 & 0x10) {
+        log(LOG_ERROR, __func__, "Wrong cylinder");
+        return EIO;
+    }
+    else if (st2 & 0x04) {
+        log(LOG_ERROR, __func__, "uPD765 sector not foudn");
+        return EIO;
+    }
+    else if (st2 & 0x02) {
+        log(LOG_ERROR, __func__, "Bad cylinder");
+        return EIO;
+    }
+    else if (bps != 0x2) {
+        log(LOG_ERROR, __func__, "Wanted 512B/sector, got %d", (1<<(bps+7)));
+        return EIO;
+    }
+    else if (st1 & 0x02) {
+        log(LOG_ERROR, __func__, "Not writable");
+        return EPERM;
+    }
+    return 0;
+}
+
+// Read or write from or to fd_dma_buffer
+static int fd_rw_block(Floppy* fd, uint8_t write)
+{
+    int head, cyl, sector;
+
+    fd_block2hcs(&fd->geometry, fd->block, &head, &cyl, &sector);
+
+    if (fd_physical_seek(fd, head, cyl) < 0) {
+        fd_motor(fd, FD_MOTOR_OFF);
+        log(LOG_WARN, __func__, "Failed to seek to block %d", fd->block);
+        return -1;
+    }
+
+    int cmd = 0xC0;
+    if (write)
+        cmd |= FD_WRITE_DATA;
+    else
+        cmd |= FD_READ_DATA;
+
+    int retry;
+    for (retry = 0; retry < 10; ++retry) {
+        fd_motor(fd, FD_MOTOR_ON);
+        fd_setup_dma(fd, fd_dma_buffer, 512, write);
+        sleep(10);
+
+        fd_send_byte(fd, cmd);
+        fd_send_byte(fd, 0);    // 0:0:0:0:0:HD:US1:US0 = head and drive
+        fd_send_byte(fd, cyl);
+        fd_send_byte(fd, head);
+        fd_send_byte(fd, sector);
+        fd_send_byte(fd, 2);    // 512 bytes/sec
+        fd_send_byte(fd, 1);    // number of tracks
+        fd_send_byte(fd, FD_GAP3);
+        fd_send_byte(fd, 0xFF); // unused?
+
+        fd_wait_irq();
+
+        // status
+        uint8_t st0, st1, st2, bps;
+        uint8_t __attribute__((unused)) rcy, rhe, rse;
+
+        st0 = fd_recv_byte(fd);
+        st1 = fd_recv_byte(fd);
+        st2 = fd_recv_byte(fd);
+        rcy = fd_recv_byte(fd);
+        rhe = fd_recv_byte(fd);
+        rse = fd_recv_byte(fd);
+        // bytes per sector
+        bps = fd_recv_byte(fd);
+
+        errno = fd_errno_mapping(st0, st1, st2, bps);
+        if (!errno)
+            break;
+    }
+
+    if (errno)
+        return -1;
+    return 0;
 }
 
 
 ssize_t fd_read(IODevice* self, void* buffer, size_t nbytes)
 {
     Floppy* fd = (Floppy*)self->data;
-    int head, cyl, sector;
 
-    fd_block2hcs(&fd->geometry, fd->block, &head, &cyl, &sector);
-
-    fd_motor(fd, FD_MOTOR_ON);
-
-    int retry;
-    for (retry = 0; retry < 10; ++retry) {
-        if (fd_physical_seek(fd, head, cyl) < 0) {
-            fd_motor(fd, FD_MOTOR_OFF);
-            log(LOG_WARN, __func__, "Failed to seek to block %d", fd->block);
-            return -1;
-        }
-
-        //dma_xfer(2, tbaddr, 512);
+    // Only multiples of 512
+    if (nbytes % 512 != 0) {
+        log(LOG_ERROR, __func__,
+                "Floppy only admits being addressed in multiples of 512 (got %z)",
+                nbytes);
+        errno = EINVAL;
+        return -1;
     }
 
-    return 0;
+    size_t nblocks = nbytes / 512;
+    size_t i, offset = 0;
+
+    // Read full blocks
+    for (i = 0; i < nblocks; ++i, offset += 512) {
+        fd_rw_block(fd, 0);
+        memcpy(buffer + offset, fd_dma_buffer, 512);
+    }
+
+    return offset;
 }
 
 
