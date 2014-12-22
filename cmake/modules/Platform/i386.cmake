@@ -2,7 +2,7 @@ find_program (GCC
     NAMES i386-elf-gcc gcc
 )
 find_program (LD
-    NAMES i386-elf-gcc ld
+    NAMES i386-elf-ld ld
 )
 find_program (OBJCOPY
     NAMES i386-elf-objcopy objcopy
