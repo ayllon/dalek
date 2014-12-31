@@ -6,13 +6,16 @@ file (GLOB source_asm "*.S")
 file (GLOB source_c   "*.c" "commands/*.c" "keymaps/*.c")
 
 add_definitions (
-    "-ffreestanding -fno-stack-protector -fno-builtin -nostdinc -Wall -m32 -O2"
+    "-ffreestanding -fno-stack-protector -fno-builtin -nostdinc -Wall -m32"
 )
 
 add_executable (stage2.elf ${source_asm} ${source_c})
 set_target_properties (stage2.elf
     PROPERTIES
-    LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld"
+    LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld -Map stage2.map"
+)
+set_source_files_properties(
+    main.c PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/linker.ld"
 )
 
 # Extract raw binary and debug symbols
@@ -21,7 +24,7 @@ add_custom_command (OUTPUT "${CMAKE_BINARY_DIR}/root"
 )
 
 add_custom_target (stage2.bin
-    COMMAND "${OBJCOPY}" -O binary "stage2.elf" "${CMAKE_BINARY_DIR}/root/stage2.bin"
+    COMMAND "${OBJCOPY}" -S -O binary "stage2.elf" "${CMAKE_BINARY_DIR}/root/stage2.bin"
     COMMAND "${OBJCOPY}" --only-keep-debug "stage2.elf" "${CMAKE_BINARY_DIR}/root/stage2.sym"
     DEPENDS stage2.elf "${CMAKE_BINARY_DIR}/root"
 )
