@@ -10,8 +10,6 @@
 #include <get.h>
 #include <strings.h>
 
-uint8_t help(uint8_t, const char**);
-
 /* void CLI()
  */
 void CLI()
@@ -22,8 +20,9 @@ void CLI()
     uint8_t i, argn;
 
     // Initialize string array pointers
-    for (i = 0; i < 16; i++)
+    for (i = 0; i < 16; i++) {
         string_array[i] = string_array_buffer + i * 128;
+    }
 
     // Always
     while (1) {
