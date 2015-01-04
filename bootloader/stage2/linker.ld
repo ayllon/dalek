@@ -13,6 +13,11 @@ SECTIONS
     *(SORT(__k_cli_cmd_*))
     __stop___k_cli_cmd = .;
   }
+  __k_io : {
+  	__start___k_io = .;
+  	*(__k_io_*)
+  	__stop___k_io = .;
+  }
   
   end = .; _end = .; __end = .;
 }

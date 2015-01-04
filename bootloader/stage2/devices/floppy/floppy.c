@@ -10,7 +10,6 @@
  */
 #include <dma.h>
 #include <errno.h>
-#include <floppy.h>
 #include <irq.h>
 #include <memory.h>
 #include <panic.h>
@@ -18,6 +17,7 @@
 #include <printf.h>
 #include <timer.h>
 
+#include "floppy.h"
 
 static const char *drive_types[] =
 {
@@ -95,7 +95,7 @@ static void fd_device_bind_methods(IODevice* fd)
 }
 
 /** Initialize */
-void fd_init()
+void fd_init(void)
 {
     uint8_t drives, a, b;
     Floppy *fd;
@@ -149,6 +149,8 @@ void fd_init()
 
     log(LOG_INFO, __func__, "Floppy drives initialized");
 }
+
+REGISTER_IO(fd_init);
 
 
 /**

@@ -20,6 +20,13 @@ static IONode *first_device;
 void io_init()
 {
     first_device = NULL;
+    io_init_func_ptr* io_init;
+
+    log(LOG_INFO, __func__, "Initializing devices");
+
+    for (io_init = __start___k_io; io_init != __stop___k_io; ++io_init) {
+        (*io_init)();
+    }
 }
 
 

@@ -9,10 +9,26 @@
 
 #include <types.h>
 
+/**
+ * Macro to facilitate compile-time driver registering
+ */
+typedef void (*io_init_func_ptr)(void);
+#define REGISTER_IO(init) \
+    static io_init_func_ptr k_io_##init __attribute__((section("__k_io_"#init), used)) = init;
+
+extern io_init_func_ptr __start___k_io[];
+extern io_init_func_ptr __stop___k_io[];
+
+/**
+ * SEEK whence values
+ */
 #define SEEK_SET 0
 #define SEEK_CUR 1
 #define SEEK_END 2
 
+/**
+ * IO Device
+ */
 typedef struct IODevice IODevice;
 struct IODevice
 {

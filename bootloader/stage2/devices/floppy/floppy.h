@@ -92,7 +92,7 @@ typedef struct {
 /**
  * Initializes drivers
  */
-void fd_init();
+void fd_init(void);
 
 /**
  * Sends a command

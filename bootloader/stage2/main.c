@@ -3,11 +3,11 @@
 #include <printf.h>
 #include <memory.h>
 #include <idt.h>
+#include <io.h>
 #include <irq.h>
 #include <timer.h>
 #include <keyboard.h>
 #include <cli.h>
-#include <floppy.h>
 #include <boot.h>
 
 
@@ -42,8 +42,6 @@ void main(BootInformation* boot_info)
     asm("sti");
     // Initialize IO
     io_init();
-    // Initialize drivers
-    fd_init();
 
     // Try reading something from floppy
     IODevice* dev = io_device_get_by_name("fd0");
