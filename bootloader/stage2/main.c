@@ -26,10 +26,6 @@ void main(BootInformation* boot_info)
     // Initialize IO
     io_init();
 
-    // Setup terminal
-    stdout = io_device_get_by_name("screen");
-    stdin = io_device_get_by_name("keyboard");
-
     // Welcome
     printf("Stage 2 loaded from drive %i\n", boot_info->boot_drive);
 

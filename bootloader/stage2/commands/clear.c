@@ -10,16 +10,13 @@
  */
 uint8_t clear(uint8_t argn, const char **argv)
 {
-    uint8_t fg, bg;
-
-    screen_getcolor(&fg, &bg);
+    uint8_t fg = 0, bg = 0;
 
     // There are arguments?
     if (argn > 1) {
         // Help
         if (strcmp(argv[1], "help") == 0) {
-            printf(
-                    "Clear the screen.\nUsage: clear [help] | [<forecolor> [<backcolor>]]\n");
+            printf("Clear the screen.\nUsage: clear [help] | [<forecolor> [<backcolor>]]\n");
             return 0;
         }
         else {
@@ -30,8 +27,8 @@ uint8_t clear(uint8_t argn, const char **argv)
     }
 
     // Clear
-    screen_setcolor(fg, bg);
-    screen_clear();
+    //screen_setcolor(fg, bg);
+    printf("\x1b[2J");
 
     // Return
     return 0;

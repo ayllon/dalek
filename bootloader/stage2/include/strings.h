@@ -15,6 +15,11 @@
 int isdigit(char c, int base);
 
 /**
+ * Returns the length of the string s
+ */
+size_t strlen(const char* s);
+
+/**
  * Converts a numerical value to a string
  * value  The value
  * base   The base

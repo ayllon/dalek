@@ -158,6 +158,9 @@ void kb_init(void)
 
     IODevice* kb = io_register_device("keyboard", "Keyboard", NULL);
     kb->read = kb_read;
+
+    // Attach itself to stdin
+    stdin = kb;
 }
 
 REGISTER_IO(kb_init);

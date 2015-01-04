@@ -9,7 +9,6 @@
 #define T_VIDEO   0xB8000
 #define T_COLUMNS 80
 #define T_ROWS    25
-#define T_ATTR    0x07
 
 #define TAB_WIDTH 4
 
@@ -31,13 +30,12 @@
 #define LIGHT_BROWN    0xE
 #define WHITE          0xF
 
+/* Default attributes */
+#define T_ATTR    (WHITE | (BLUE << 4))
+
 /* Terminal primitives */
 void screen_clear();
 void screen_scroll(uint8_t n);
-void screen_setcolor(uint8_t forecolor, uint8_t backcolor);
-void screen_getcolor(uint8_t *forecolor, uint8_t *backcolor);
-void screen_setforecolor(uint8_t forecolor);
-void screen_restorecolor();
 void screen_updatecursor();
 char screen_putc(char c);
 

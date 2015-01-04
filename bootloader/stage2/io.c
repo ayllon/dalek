@@ -27,6 +27,8 @@ void io_init()
     for (io_init = __start___k_io; io_init != __stop___k_io; ++io_init) {
         (*io_init)();
     }
+
+    log(LOG_INFO, __func__, "Devices initialized");
 }
 
 

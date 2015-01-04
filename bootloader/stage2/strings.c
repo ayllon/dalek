@@ -28,6 +28,19 @@ int isdigit(char c, int base)
     }
 }
 
+
+size_t strlen(const char* s)
+{
+    if (!s)
+        return 0;
+
+    size_t i = 0;
+    while (s[i])
+        ++i;
+    return i;
+}
+
+
 static char* str_reverse(char* begin, char* end)
 {
     char* p1 = begin;

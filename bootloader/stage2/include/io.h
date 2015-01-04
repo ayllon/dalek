@@ -44,7 +44,7 @@ struct IODevice
   // Methods
   off_t   (*seek)(IODevice* self, off_t offset, int whence);
   ssize_t (*read)(IODevice* self, void* buffer, size_t nbytes);
-  ssize_t (*write)(IODevice* self, void* buffer, size_t nbytes);
+  ssize_t (*write)(IODevice* self, const void* buffer, size_t nbytes);
   int     (*ioctl)(IODevice* self, unsigned long request);
 };
 

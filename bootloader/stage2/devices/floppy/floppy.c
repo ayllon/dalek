@@ -546,7 +546,7 @@ ssize_t fd_read(IODevice* self, void* buffer, size_t nbytes)
 }
 
 
-ssize_t fd_write(IODevice* self, void* buffer, size_t nbytes)
+ssize_t fd_write(IODevice* self, const void* buffer, size_t nbytes)
 {
     errno = ENOSYS;
     return -1;

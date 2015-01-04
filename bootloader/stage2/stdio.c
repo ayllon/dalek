@@ -82,13 +82,17 @@ int vprintf(const char *s, va_list args)
     if (!stdout)
         return 0;
     unsigned int i;
-    char buffer[64], *p;
+    char buffer[64];
+    const char *p;
 
     for (i = 0; *s; s++) {
-        // Field
         if (*s != '%') {
-            buffer[0] = *s;
-            stdout->write(stdout, buffer, 1);
+            // Figure out end of this string
+            p = s + 1;
+            while (*p != '%' && *p !='\0')
+                ++p;
+            stdout->write(stdout, s, p - s);
+            s = p - 1;
         }
         else {
             unsigned lcount = 0;
@@ -144,8 +148,8 @@ format:
                 goto string;
             case 's':
                 p = va_arg(args, char*);
-                string: while (*p)
-                    stdout->write(stdout, p++, 1);
+                string:
+                    stdout->write(stdout, p, strlen(p));
                 break;
             default:
                 stdout->write(stdout, p, 1);
@@ -161,21 +165,21 @@ format:
  */
 int log(int level, const char* func, const char* msg, ...)
 {
-    int i = 0;/*
+    int i = 0;
     switch (level) {
         case LOG_WARN:
-            setforecolor(LIGHT_BROWN);
+            printf("\x1b[33m");
             break;
         default:
-            setforecolor(LIGHT_GREY);
+            printf("\x1b[37m");
     }
-*/
+
     i += printf("[%s] ", func);
     va_list args;
     va_start(args, msg);
     i += vprintf(msg, args);
     va_end(args);
     printf("\n");
-    //restorecolor();
+    printf("\x1b[m");
     return i;
 }
