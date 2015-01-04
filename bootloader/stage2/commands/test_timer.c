@@ -1,6 +1,6 @@
-#include <timer.h>
-#include <printf.h>
 #include <cli.h>
+#include <timer.h>
+#include <stdio.h>
 
 static void callback(int id)
 {

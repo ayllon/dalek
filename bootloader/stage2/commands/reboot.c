@@ -2,10 +2,10 @@
  * reboot.c
  *
  */
-#include <printf.h>
 #include <cli.h>
 #include <timer.h>
 #include <ports.h>
+#include <stdio.h>
 #include <strings.h>
 
 /**

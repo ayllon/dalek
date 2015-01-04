@@ -5,9 +5,7 @@
  *
  */
 #include <cli.h>
-#include <printf.h>
-#include <keyboard.h>
-#include <get.h>
+#include <stdio.h>
 #include <strings.h>
 
 /* void CLI()

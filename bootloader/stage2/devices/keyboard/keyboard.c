@@ -3,11 +3,13 @@
  *
  * Keyboard handling
  */
-#include <keyboard.h>
 #include <types.h>
+#include <io.h>
 #include <irq.h>
 #include <ports.h>
-#include <printf.h>
+#include <stdio.h>
+
+#include "keyboard.h"
 
 /* Types */
 static struct {
@@ -19,7 +21,8 @@ static struct {
 } kb_flags = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 /* Keymap */
-extern uint16_t kb_keymap[], kb_shift_keymap[], kb_altgr_keymap[], kb_escaped_keymap[];
+//extern uint16_t kb_keymap[], kb_shift_keymap[], kb_altgr_keymap[], kb_escaped_keymap[];
+#include "keymaps/es_es.c"
 
 /** Keyboard buffer **/
 static volatile struct {
@@ -99,8 +102,8 @@ void kb_handler(Registers *regs)
                 }
                 else {
                     // Unknown code
-                    printf(
-                            "[kb_handler()] Unknown scancode: 0x%x (Escaped: %i)\n",
+                    log(LOG_WARN, __func__,
+                            "Unknown scancode: 0x%x (Escaped: %i)\n",
                             c, kb_flags.escaped);
                 }
             } // if keyDown
@@ -112,17 +115,6 @@ void kb_handler(Registers *regs)
     } // else c == 0xE0
 }
 
-/**
- * Install handler
- */
-void kb_init()
-{
-    irq_install_handler(KB_IRQ, kb_handler);
-    // Buffer
-    kb_buffer.push_index = kb_buffer.pop_index = 0;
-
-    log(LOG_INFO, __func__, "Keyboard initialized");
-}
 
 /**
  * Returns the last key
@@ -142,3 +134,30 @@ uint16_t kb_getc()
     // Return
     return kb_buffer.key[index];
 }
+
+/**
+ * Read call
+ */
+ssize_t kb_read(IODevice* self, void* buffer, size_t nbytes)
+{
+    size_t i;
+    char* cbuffer = (char*)buffer;
+    for (i = 0; i < nbytes; ++i) {
+        cbuffer[i] = kb_getc();
+    }
+    return i;
+}
+
+/**
+ * Install handler
+ */
+void kb_init(void)
+{
+    irq_install_handler(KB_IRQ, kb_handler);
+    kb_buffer.push_index = kb_buffer.pop_index = 0;
+
+    IODevice* kb = io_register_device("keyboard", "Keyboard", NULL);
+    kb->read = kb_read;
+}
+
+REGISTER_IO(kb_init);

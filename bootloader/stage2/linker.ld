@@ -15,7 +15,7 @@ SECTIONS
   }
   __k_io : {
   	__start___k_io = .;
-  	*(__k_io_*)
+  	*(SORT(__k_io_*))
   	__stop___k_io = .;
   }
   

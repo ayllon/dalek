@@ -1,14 +1,12 @@
 /* Main file */
-#include <types.h>
-#include <printf.h>
-#include <memory.h>
+#include <boot.h>
+#include <cli.h>
 #include <idt.h>
 #include <io.h>
 #include <irq.h>
+#include <memory.h>
+#include <stdio.h>
 #include <timer.h>
-#include <keyboard.h>
-#include <cli.h>
-#include <boot.h>
 
 
 int errno = 0;
@@ -16,9 +14,23 @@ int errno = 0;
 
 void main(BootInformation* boot_info)
 {
+    // Memory
+    mm_initialize(boot_info);
+    // IDT and IRQ
+    idt_install();
+    irq_install();
+    // Install handlers
+    timer_init();
+    // Re-enable interrupts
+    asm("sti");
+    // Initialize IO
+    io_init();
+
+    // Setup terminal
+    stdout = io_device_get_by_name("screen");
+    stdin = io_device_get_by_name("keyboard");
+
     // Welcome
-    setcolor(WHITE, BLUE);
-    cls();
     printf("Stage 2 loaded from drive %i\n", boot_info->boot_drive);
 
     printf("%d entries found for the memory\n", boot_info->smap_size);
@@ -29,19 +41,6 @@ void main(BootInformation* boot_info)
                 ent->acpi & 0x03, ent->type);
         printf("Base 0x%016llx\tSize %lld\n", ent->base, ent->length);
     }
-
-    // Memory
-    mm_initialize(boot_info);
-    // IDT and IRQ
-    idt_install();
-    irq_install();
-    // Install handlers
-    timer_init();
-    kb_init();
-    // Re-enable interrupts
-    asm("sti");
-    // Initialize IO
-    io_init();
 
     // Try reading something from floppy
     IODevice* dev = io_device_get_by_name("fd0");
@@ -59,4 +58,8 @@ void main(BootInformation* boot_info)
 
     // Launch command line interpreter
     CLI();
+
+    // Should never reach this, but just in case...
+    while (1)
+        asm("hlt");
 }

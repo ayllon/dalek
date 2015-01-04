@@ -3,8 +3,8 @@
  */
 #include <memory.h>
 #include <types.h>
-#include <printf.h>
 #include <ports.h>
+#include <stdio.h>
 
 // Memory information
 static uint64_t mem_size = 0; // In KB!!

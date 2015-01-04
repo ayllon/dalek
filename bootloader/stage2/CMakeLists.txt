@@ -19,7 +19,7 @@ add_executable (stage2.elf
 )
 set_target_properties (stage2.elf
     PROPERTIES
-    LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld -Map stage2.map"
+    LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld -Map ${CMAKE_BINARY_DIR}/root/stage2.map"
 )
 set_source_files_properties(
     main.c PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/linker.ld"

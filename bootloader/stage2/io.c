@@ -6,8 +6,8 @@
  */
 #include <io.h>
 #include <memory.h>
+#include <stdio.h>
 #include <strings.h>
-#include <printf.h>
 
 struct IONode {
     IODevice *device;

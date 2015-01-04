@@ -1,8 +1,8 @@
 /*
  * version.c
  */
-#include <printf.h>
 #include <cli.h>
+#include <stdio.h>
 
 /**
  * Just prints the version

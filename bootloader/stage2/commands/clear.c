@@ -1,8 +1,8 @@
 /*
  * clear.c
  */
-#include <printf.h>
 #include <cli.h>
+#include <stdio.h>
 #include <strings.h>
 
 /**
@@ -12,7 +12,7 @@ uint8_t clear(uint8_t argn, const char **argv)
 {
     uint8_t fg, bg;
 
-    getcolor(&fg, &bg);
+    screen_getcolor(&fg, &bg);
 
     // There are arguments?
     if (argn > 1) {
@@ -30,8 +30,8 @@ uint8_t clear(uint8_t argn, const char **argv)
     }
 
     // Clear
-    setcolor(fg, bg);
-    cls();
+    screen_setcolor(fg, bg);
+    screen_clear();
 
     // Return
     return 0;

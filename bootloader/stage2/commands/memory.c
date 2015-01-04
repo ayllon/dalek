@@ -1,10 +1,10 @@
 /*
  * memory.c
  */
-#include <printf.h>
 #include <cli.h>
-#include <strings.h>
 #include <memory.h>
+#include <stdio.h>
+#include <strings.h>
 
 /**
  * Information about memory

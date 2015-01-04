@@ -8,7 +8,7 @@
 #include <registers.h>
 #include <memory.h>
 #include <panic.h>
-#include <printf.h>
+#include <stdio.h>
 
 /* IDT Entry */
 struct idt_entry {

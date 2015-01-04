@@ -1,8 +1,8 @@
 /*
  * echo.c
  */
-#include <printf.h>
 #include <cli.h>
+#include <stdio.h>
 #include <strings.h>
 
 /**

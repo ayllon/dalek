@@ -14,7 +14,7 @@
 #include <memory.h>
 #include <panic.h>
 #include <ports.h>
-#include <printf.h>
+#include <stdio.h>
 #include <timer.h>
 
 #include "floppy.h"

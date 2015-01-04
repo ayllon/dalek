@@ -13,8 +13,13 @@
  * Macro to facilitate compile-time driver registering
  */
 typedef void (*io_init_func_ptr)(void);
+#define REGISTER_IO_LVL(init, level) \
+    static io_init_func_ptr k_io_##init __attribute__((section("__k_io_"#level), used)) = init;
+
 #define REGISTER_IO(init) \
-    static io_init_func_ptr k_io_##init __attribute__((section("__k_io_"#init), used)) = init;
+    REGISTER_IO_LVL(init, 99)
+#define REGISTER_IO_EARLY(init) \
+	REGISTER_IO_LVL(init, 0)
 
 extern io_init_func_ptr __start___k_io[];
 extern io_init_func_ptr __stop___k_io[];

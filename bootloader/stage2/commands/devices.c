@@ -3,7 +3,7 @@
  */
 #include <cli.h>
 #include <io.h>
-#include <printf.h>
+#include <stdio.h>
 
 
 uint8_t devices(uint8_t argn, const char **argv)

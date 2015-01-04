@@ -5,7 +5,7 @@
 #include <types.h>
 #include <irq.h>
 #include <ports.h>
-#include <printf.h>
+#include <stdio.h>
 
 // Tasks register
 struct timer_task {

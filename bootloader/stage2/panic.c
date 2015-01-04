@@ -3,14 +3,15 @@
  *
  */
 #include <panic.h>
-#include <printf.h>
 #include <stdarg.h>
+#include <stdio.h>
+
 
 void panic(const char* f, const char *s, ...)
 {
     va_list args;
 
-    setcolor(LIGHT_RED, BLACK);
+    //setcolor(LIGHT_RED, BLACK);
     printf("PANIC!! ");
     printf("[%s] ", f);
 
