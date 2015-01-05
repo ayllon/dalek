@@ -43,11 +43,16 @@ char *itoa_s(long long value, int base, char pad, int w, char *buffer,
 char *ftoa_s(double value, int decimals, char *buffer, size_t bsize);
 
 /**
- * Converts a string to an integer
+ * Converts a string to an integer. If base is 0, tries to detect the base.
  * 0x0000  Hexadecimal
  * 0b0000  Binary
  * 00000   Octal
  * Else    Decimal
+ */
+int strtol(const char *s, char** p, int base);
+
+/**
+ * Wrapper around strol(s, NULL, 0);
  */
 int atoi(const char *s);
 

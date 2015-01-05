@@ -540,6 +540,7 @@ ssize_t fd_read(IODevice* self, void* buffer, size_t nbytes)
     for (i = 0; i < nblocks; ++i, offset += 512) {
         fd_rw_block(fd, 0);
         memcpy(buffer + offset, fd_dma_buffer, 512);
+        ++fd->block;
     }
 
     return offset;

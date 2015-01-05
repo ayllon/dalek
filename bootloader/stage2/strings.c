@@ -147,27 +147,29 @@ char *ftoa_s(double value, int decimals, char* buffer, size_t bsize)
 /**
  * Converts a string to an integer
  */
-int atoi(const char *s)
+int strtol(const char *s, char** p, int base)
 {
-    uint16_t base, value;
+    uint16_t value;
     // Get the base (2, 8, 10, 16)
-    if (s[0] == '0') {
-        switch (s[1]) {
-        case 'x':
-            base = 16;
-            s += 2;
-            break;
-        case 'b':
-            base = 2;
-            s += 2;
-            break;
-        default:
-            base = 8;
-            s += 1;
+    if (base == 0) {
+        if (s[0] == '0') {
+            switch (s[1]) {
+            case 'x':
+                base = 16;
+                s += 2;
+                break;
+            case 'b':
+                base = 2;
+                s += 2;
+                break;
+            default:
+                base = 8;
+                s += 1;
+            }
         }
-    }
-    else {
-        base = 10;
+        else {
+            base = 10;
+        }
     }
 
     // Calculate
@@ -185,7 +187,19 @@ int atoi(const char *s)
         s++;
     }
 
+    if (p) {
+        if (*s)
+            *p = (char*)s;
+        else
+            *p = NULL;
+    }
+
     return value;
+}
+
+int atoi(const char *s)
+{
+    return strtol(s, NULL, 0);
 }
 
 /**

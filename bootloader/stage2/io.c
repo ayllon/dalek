@@ -4,6 +4,7 @@
  * I/O devices register
  *
  */
+#include <errno.h>
 #include <io.h>
 #include <memory.h>
 #include <stdio.h>
@@ -86,5 +87,6 @@ IODevice* io_device_get_by_name(const char* name)
             return iterator->device;
         iterator = io_device_list_next(iterator);
     }
+    errno = ENOENT;
     return NULL;
 }
