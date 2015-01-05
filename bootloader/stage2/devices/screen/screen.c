@@ -142,32 +142,43 @@ char screen_putc(char c)
  */
 static void screen_ansi_attr(const char* params, size_t len)
 {
-    int attr = 0;
+    static const uint8_t color_table[] = {
+        BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, LIGHT_GREY
+    };
+
+    long attr = 0;
     if (len > 0) {
         attr = atoi(params);
     }
 
-    // Save attributes for eventual restoration
     uint8_t oldattr = screen_info.attr;
+    char* p = (char*)params;
 
-    // Reset
-    if (attr == 0) {
-        screen_info.attr = screen_info.oldattr;
-    }
-    // Bold
-    else if (attr == 1) {
-        screen_info.attr |= 0x08;
-    }
-    // Foreground
-    else if (attr >= 30 && attr < 40) {
-        screen_info.attr &= 0xF0;
-        screen_info.attr |= (attr - 30);
-    }
-    // Background
-    else if (attr >= 40 && attr < 50) {
-        screen_info.attr &= 0x0F;
-        screen_info.attr |= ((attr - 40) << 4);
-    }
+    do {
+        attr = strtol(p, &p, 10);
+
+        // Reset
+        if (attr == 0) {
+            screen_info.attr = screen_info.oldattr;
+        }
+        // Bold
+        else if (attr == 1) {
+            screen_info.attr |= 0x08;
+        }
+        // Foreground
+        else if (attr >= 30 && attr <= 37) {
+            screen_info.attr &= 0xF0;
+            screen_info.attr |= (color_table[attr - 30]);
+        }
+        // Background
+        else if (attr >= 40 && attr <= 47) {
+            screen_info.attr &= 0x0F;
+            screen_info.attr |= ((color_table[attr - 40]) << 4);
+        }
+
+        if (p)
+            ++p;
+    } while (p && (p - params) < len);
 
     screen_info.oldattr = oldattr;
 }

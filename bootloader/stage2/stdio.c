@@ -152,7 +152,7 @@ format:
                     stdout->write(stdout, p, strlen(p));
                 break;
             default:
-                stdout->write(stdout, p, 1);
+                stdout->write(stdout, s, 1);
             }
         }
     }
@@ -167,6 +167,9 @@ int log(int level, const char* func, const char* msg, ...)
 {
     int i = 0;
     switch (level) {
+        case LOG_ERROR:
+            printf("\x1b[31;1m");
+            break;
         case LOG_WARN:
             printf("\x1b[33m");
             break;

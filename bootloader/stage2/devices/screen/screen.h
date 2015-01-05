@@ -19,7 +19,7 @@
 #define CYAN           0x3
 #define RED            0x4
 #define MAGENTA        0x5
-#define BROWN          0x6
+#define YELLOW         0x6
 #define LIGHT_GREY     0x7
 #define DARK_GREY      0x8
 #define LIGHT_BLUE     0x9
@@ -27,7 +27,7 @@
 #define LIGHT_CYAN     0xB
 #define LIGHT_RED      0xC
 #define LIGHT_MANGENTA 0xD
-#define LIGHT_BROWN    0xE
+#define LIGHT_YELLOW   0xE
 #define WHITE          0xF
 
 /* Default attributes */
