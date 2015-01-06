@@ -27,13 +27,8 @@ uint8_t read(uint8_t argn, const char** argv)
         log(LOG_ERROR, __func__, "Could not find %s (%d)", dev_name, errno);
         return -1;
     }
-    if (!dev->read) {
-        log(LOG_ERROR, __func__, "%s does not implement read", dev_name);
-        return -1;
-    }
-
     uint8_t buffer[nbytes];
-    if (dev->read(dev, buffer, nbytes) < 0) {
+    if (io_read(dev, buffer, nbytes) < 0) {
         log(LOG_ERROR, __func__, "Failed to read: %d", errno);
         return -1;
     }
@@ -78,12 +73,8 @@ uint8_t seek(uint8_t argn, const char** argv)
         log(LOG_ERROR, __func__, "Could not find %s (%d)", dev_name, errno);
         return -1;
     }
-    if (!dev->seek) {
-        log(LOG_ERROR, __func__, "%s does not implement seek", dev_name);
-        return -1;
-    }
 
-    if (dev->seek(dev, offset, SEEK_SET) < 0) {
+    if (io_seek(dev, offset, SEEK_SET) < 0) {
         log(LOG_ERROR, __func__, "%s failed to seek to %d (%d)", dev_name, offset, errno);
         return -1;
     }

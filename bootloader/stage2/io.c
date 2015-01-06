@@ -76,9 +76,7 @@ IODevice* io_device_get_device(IONode* node)
     return NULL;
 }
 
-/**
- * Get the device with the given name
- */
+
 IODevice* io_device_get_by_name(const char* name)
 {
     IONode* iterator = io_device_list_begin();
@@ -89,4 +87,64 @@ IODevice* io_device_get_by_name(const char* name)
     }
     errno = ENOENT;
     return NULL;
+}
+
+
+off_t io_seek(IODevice* dev, off_t offset, int whence)
+{
+    if (!dev) {
+        errno = EFAULT;
+        return -1;
+    }
+    if (!dev->seek) {
+        errno = ENOSYS;
+        return -1;
+    }
+    return dev->seek(dev, offset, whence);
+}
+
+
+ssize_t io_read(IODevice* dev, void* buffer, size_t nbytes)
+{
+    if (!dev) {
+        errno = EFAULT;
+        return -1;
+    }
+    if (!dev->read) {
+        errno = ENOSYS;
+        return -1;
+    }
+    return dev->read(dev, buffer, nbytes);
+}
+
+
+ssize_t io_write(IODevice* dev, const void* buffer, size_t nbytes)
+{
+    if (!dev) {
+        errno = EFAULT;
+        return -1;
+    }
+    if (!dev->write) {
+        errno = ENOSYS;
+        return -1;
+    }
+    return dev->write(dev, buffer, nbytes);
+}
+
+
+int io_ioctl(IODevice* dev, const char* request, ...)
+{
+    if (!dev) {
+        errno = EFAULT;
+        return -1;
+    }
+    if (!dev->ioctl) {
+        errno = ENOSYS;
+        return -1;
+    }
+    va_list args;
+    va_start(args, request);
+    int r = dev->ioctl(dev, request, args);
+    va_end(args);
+    return r;
 }

@@ -7,6 +7,7 @@
 #ifndef __IO_H__
 #define __IO_H__
 
+#include <stdarg.h>
 #include <types.h>
 
 /**
@@ -45,7 +46,7 @@ struct IODevice
   off_t   (*seek)(IODevice* self, off_t offset, int whence);
   ssize_t (*read)(IODevice* self, void* buffer, size_t nbytes);
   ssize_t (*write)(IODevice* self, const void* buffer, size_t nbytes);
-  int     (*ioctl)(IODevice* self, unsigned long request);
+  int     (*ioctl)(IODevice* self, const char* request, va_list args);
 };
 
 typedef struct IONode IONode;
@@ -82,5 +83,25 @@ IODevice* io_device_get_device(IONode* node);
  * Get the device with the given name
  */
 IODevice* io_device_get_by_name(const char* name);
+
+/**
+ * Seek
+ */
+off_t io_seek(IODevice* dev, off_t offset, int whence);
+
+/**
+ * Read
+ */
+ssize_t io_read(IODevice* dev, void* buffer, size_t nbytes);
+
+/**
+ * Write
+ */
+ssize_t io_write(IODevice* dev, const void* buffer, size_t nbytes);
+
+/**
+ * IOCtl
+ */
+int io_ioctl(IODevice* dev, const char* request, ...);
 
 #endif

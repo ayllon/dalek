@@ -13,6 +13,7 @@ extern int errno;
 #define EPERM   4
 #define EBUSY   5
 #define EBADF   6
+#define EFAULT  7
 #define ENOSYS  40   // Function not implemented
 
 #endif /* __ERRNO_H__ */

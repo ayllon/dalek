@@ -91,7 +91,6 @@ static void fd_device_bind_methods(IODevice* fd)
     fd->read = fd_read;
     fd->seek = fd_seek;
     fd->write = fd_write;
-    fd->ioctl = fd_ioctl;
 }
 
 /** Initialize */
@@ -548,13 +547,6 @@ ssize_t fd_read(IODevice* self, void* buffer, size_t nbytes)
 
 
 ssize_t fd_write(IODevice* self, const void* buffer, size_t nbytes)
-{
-    errno = ENOSYS;
-    return -1;
-}
-
-
-int fd_ioctl(IODevice* self, unsigned long request)
 {
     errno = ENOSYS;
     return -1;

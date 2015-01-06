@@ -126,6 +126,5 @@ void fd_motor_kill(Floppy *f);
 off_t   fd_seek(IODevice* self, off_t offset, int whence);
 ssize_t fd_read(IODevice* self, void* buffer, size_t nbytes);
 ssize_t fd_write(IODevice* self, const void* buffer, size_t nbytes);
-int     fd_ioctl(IODevice* self, unsigned long request);
 
 #endif

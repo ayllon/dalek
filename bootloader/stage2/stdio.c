@@ -21,7 +21,7 @@ char getc()
         return -1;
     }
     char c;
-    stdin->read(stdin, &c, 1);
+    io_read(stdin, &c, 1);
     return c & 0xFF;
 }
 
@@ -44,16 +44,16 @@ char *gets(char *dest)
         case '\b': // Delete
             if (i > 0) {
                 dest[--i] = '\0';
-                stdout->write(stdout, &c, 1); // Echo
+                io_write(stdout, &c, 1); // Echo
             }
             break;
         case '\n': // EOL
             dest[i] = '\0';
-            stdout->write(stdout, &c, 1);
+            io_write(stdout, &c, 1);
             break;
         default: // Rest
             dest[i++] = c;
-            stdout->write(stdout, &c, 1);
+            io_write(stdout, &c, 1);
         }
     } while (c != '\n'); // Until EOL
 
@@ -91,7 +91,8 @@ int vprintf(const char *s, va_list args)
             p = s + 1;
             while (*p != '%' && *p !='\0')
                 ++p;
-            stdout->write(stdout, s, p - s);
+            if (io_write(stdout, s, p - s) < 0)
+                return -1;
             s = p - 1;
         }
         else {
@@ -115,7 +116,8 @@ format:
                 goto format;
             case 'c':
                 buffer[0] = va_arg(args, int);
-                stdout->write(stdout, buffer, 1);
+                if (io_write(stdout, buffer, 1) < 0)
+                    return -1;
                 break;
             case 'd':
             case 'i':
@@ -149,10 +151,12 @@ format:
             case 's':
                 p = va_arg(args, char*);
                 string:
-                    stdout->write(stdout, p, strlen(p));
+                    if (io_write(stdout, p, strlen(p)) < 0)
+                        return -1;
                 break;
             default:
-                stdout->write(stdout, s, 1);
+                if (io_write(stdout, s, 1) < 0)
+                    return -1;
             }
         }
     }
