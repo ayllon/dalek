@@ -74,9 +74,7 @@ loader:
 	/* Load file to memory */
 	/* Where */
 	push	%ax
-	mov		$0x0050, %ax
-	mov		%ax, %es
-	mov		$0x0000, %bx
+	mov		$0x8000, %bx
 
 	mov		bpbBytesPerSector, %ax
 	mulw	bpbSectorsPerCluster
@@ -106,7 +104,7 @@ _stage2_read:
 	/* Jump there */
 	xor		%bx, %bx
 	mov		bootDrive, %bl	/* Boot drive */
-	ljmp	$0x0050,$0x0000
+	ljmp	$0x0000,$0x8000
 
 	/* Halt */
 _notFound:
@@ -147,7 +145,7 @@ _flReset:
 
 /* Read a logical sector from the disk using BIOS interrupts
  * (Convert secuential cluster to Head, Cylinder, Sector and read)
- * DX.AX = Logical sector
+ * AX = Logical sector
  * CL = Number of logical sectors
  * ES:BX = Where to put the data
  */
@@ -167,10 +165,6 @@ readLBA:
 	/* LS / (SPT * NH) */
 	mov		%al, _cyl	/* And the cylinder */
 
-	popa
-
-	/* Read */
-	pusha
 _readLBA_loop:
 	mov		bootDrive, %dl
 	mov		_nsect,	 %al
@@ -185,6 +179,7 @@ _readLBA_loop:
 	popa
 	call	floppyReset
 	ret
+
 _sector:
 	.byte	0x00
 _head:
