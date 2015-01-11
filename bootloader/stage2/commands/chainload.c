@@ -5,6 +5,9 @@
 #include <errno.h>
 #include <io.h>
 #include <stdio.h>
+#include <strings.h>
+
+extern void chainload_asm(int);
 
 uint8_t chainload(uint8_t argc, const char** argv)
 {
@@ -48,6 +51,9 @@ uint8_t chainload(uint8_t argc, const char** argv)
         log(LOG_ERROR, __func__, "Content: 0x%02X%02X", sector[511], sector[510]);
         return -1;
     }
+
+    // De-initialize IO
+    io_deinit();
 
     // Reset screen
     printf("\x1b[37;40m\x1b[J");

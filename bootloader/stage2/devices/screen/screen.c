@@ -252,4 +252,4 @@ void screen_init(void)
     stdout = screen;
 }
 
-REGISTER_IO_EARLY(screen_init);
+REGISTER_IO_EARLY(screen_init, NULL);

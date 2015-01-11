@@ -13,17 +13,21 @@
 /**
  * Macro to facilitate compile-time driver registering
  */
-typedef void (*io_init_func_ptr)(void);
-#define REGISTER_IO_LVL(init, level) \
-    static io_init_func_ptr k_io_##init __attribute__((section("__k_io_"#level), used)) = init;
+typedef struct IOImpl {
+    void (*init)(void);
+    void (*deinit)(void);
+} IOImpl;
 
-#define REGISTER_IO(init) \
-    REGISTER_IO_LVL(init, 99)
-#define REGISTER_IO_EARLY(init) \
-	REGISTER_IO_LVL(init, 0)
+#define REGISTER_IO_LVL(init, deinit, level) \
+    static IOImpl k_io_##init __attribute__((section("__k_io_"#level), used)) = { init, deinit };
 
-extern io_init_func_ptr __start___k_io[];
-extern io_init_func_ptr __stop___k_io[];
+#define REGISTER_IO(init, deinit) \
+    REGISTER_IO_LVL(init, deinit, 99)
+#define REGISTER_IO_EARLY(init, deinit) \
+	REGISTER_IO_LVL(init, deinit, 0)
+
+extern IOImpl __start___k_io[];
+extern IOImpl __stop___k_io[];
 
 /**
  * SEEK whence values
@@ -56,6 +60,11 @@ typedef struct IONode IONode;
  * Initialize the subsystem
  */
 void io_init();
+
+/**
+ * Deinitialize the subsystem
+ */
+void io_deinit();
 
 /**
  * Register method

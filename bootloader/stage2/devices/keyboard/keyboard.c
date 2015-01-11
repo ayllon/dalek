@@ -163,4 +163,4 @@ void kb_init(void)
     stdin = kb;
 }
 
-REGISTER_IO(kb_init);
+REGISTER_IO(kb_init, NULL);

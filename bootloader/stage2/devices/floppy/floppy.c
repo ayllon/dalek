@@ -99,6 +99,10 @@ void fd_init(void)
     uint8_t drives, a, b;
     Floppy *fd;
 
+    memset(fd_units, 0, sizeof(fd_units));
+    fd_units[0].drive_number = 0xFF;
+    fd_units[1].drive_number = 0xFF;
+
     /* Register handler */
     irq_install_handler(6, fd_irq_handler);
 
@@ -111,7 +115,7 @@ void fd_init(void)
     /* Drive 0 */
     if (a) {
         if (drive_geometry[a].heads != 0) {
-            fd = (Floppy*) malloc(sizeof(Floppy));
+            fd = &fd_units[0];
             fd->base = FD_PRIMARY_BASE;
             fd->drive_number = 0;
             fd->motor_state = FD_MOTOR_OFF;
@@ -130,7 +134,7 @@ void fd_init(void)
     /* Drive 1 */
     if (b) {
         if (drive_geometry[b].heads != 0) {
-            fd = (Floppy*) malloc(sizeof(Floppy));
+            fd = &fd_units[1];
             fd->base = FD_PRIMARY_BASE;
             fd->drive_number = 1;
             fd->motor_state = FD_MOTOR_OFF;
@@ -153,7 +157,21 @@ void fd_init(void)
     log(LOG_INFO, __func__, "Floppy drives initialized");
 }
 
-REGISTER_IO(fd_init);
+/**
+ * Tear down floppy driver
+ */
+void fd_deinit(void)
+{
+    register int i;
+    for (i = 0; i < sizeof(fd_units) / sizeof(Floppy); i++) {
+        if (fd_units[1].drive_number != 0xFF) {
+            fd_motor_kill(&fd_units[i]);
+            fd_reset(&fd_units[i]);
+        }
+    }
+}
+
+REGISTER_IO(fd_init, fd_deinit);
 
 
 /**
@@ -470,7 +488,6 @@ static int fd_rw_block(Floppy* fd, uint8_t write)
     fd_block2hcs(&fd->geometry, fd->block, &head, &cyl, &sector);
 
     if (fd_physical_seek(fd, head, cyl) < 0) {
-        fd_motor(fd, FD_MOTOR_OFF);
         log(LOG_WARN, __func__, "Failed to seek to block %d", fd->block);
         return -1;
     }
@@ -512,7 +529,8 @@ static int fd_rw_block(Floppy* fd, uint8_t write)
         // bytes per sector
         bps = fd_recv_byte(fd);
 
-        errno = fd_errno_mapping(st0, st1, st2, bps);
+        //merrno = fd_errno_mapping(st0, st1, st2, bps);
+        errno = 0;
         if (!errno)
             break;
     }
