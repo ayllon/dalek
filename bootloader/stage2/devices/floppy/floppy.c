@@ -117,8 +117,10 @@ void fd_init(void)
             fd->motor_state = FD_MOTOR_OFF;
             fd->geometry = drive_geometry[a];
             fd->n_blocks = fd->geometry.spt * fd->geometry.tracks * fd->geometry.heads;
+            fd->block = 0;
             fd_reset(fd);
             IODevice* fd0 = io_register_device("fd0", drive_types[a], fd);
+            fd0->id = 0x00; // BIOS drive number
             fd_device_bind_methods(fd0);
         }
         else {
@@ -134,8 +136,10 @@ void fd_init(void)
             fd->motor_state = FD_MOTOR_OFF;
             fd->geometry = drive_geometry[b];
             fd->n_blocks = fd->geometry.spt * fd->geometry.tracks * fd->geometry.heads;
+            fd->block = 0;
             fd_reset(fd);
             IODevice* fd1 = io_register_device("fd1", drive_types[b], fd);
+            fd1->id = 0x01; // BIOS drive number
             fd_device_bind_methods(fd1);
         }
         else {
@@ -484,7 +488,7 @@ static int fd_rw_block(Floppy* fd, uint8_t write)
         sleep(10);
 
         fd_send_byte(fd, cmd);
-        fd_send_byte(fd, 0);    // 0:0:0:0:0:HD:US1:US0 = head and drive
+        fd_send_byte(fd, head<<2|fd->drive_number);
         fd_send_byte(fd, cyl);
         fd_send_byte(fd, head);
         fd_send_byte(fd, sector);

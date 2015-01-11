@@ -42,6 +42,7 @@ struct IODevice
   char name[16];
   char description[32];
   void *data;
+  int   id;
   // Methods
   off_t   (*seek)(IODevice* self, off_t offset, int whence);
   ssize_t (*read)(IODevice* self, void* buffer, size_t nbytes);

@@ -9,11 +9,17 @@
 uint8_t chainload(uint8_t argc, const char** argv)
 {
     const char* dev_name = NULL;
+    char force = 0;
+
     if (argc < 2) {
         log(LOG_ERROR, __func__, "Missing device parameter");
         return  -1;
     }
+
     dev_name = argv[1];
+    if (argc > 2 && strncmp(argv[2], "force", 5) == 0) {
+        force = 1;
+    }
 
     IODevice* dev = io_device_get_by_name(dev_name);
     if (!dev) {
@@ -37,9 +43,9 @@ uint8_t chainload(uint8_t argc, const char** argv)
 
     // Verify bootable bytes
     unsigned char *sector = (unsigned char*)dst;
-    if (sector[511] != 0xAA && sector[512] != 0x55) {
+    if (!force && sector[510] != 0x55 && sector[511] != 0xAA) {
         log(LOG_ERROR, __func__, "Loaded chunk does not have 0xAA55 marker");
-        log(LOG_ERROR, __func__, "Content: %X%X", sector[511], sector[512]);
+        log(LOG_ERROR, __func__, "Content: 0x%02X%02X", sector[511], sector[510]);
         return -1;
     }
 
@@ -47,7 +53,7 @@ uint8_t chainload(uint8_t argc, const char** argv)
     printf("\x1b[37;40m\x1b[J");
 
     // Leave protected mode and jump
-    chainload_asm();
+    chainload_asm(dev->id);
 
     return 0;
 }

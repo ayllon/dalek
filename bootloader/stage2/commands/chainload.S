@@ -3,6 +3,9 @@
 /* Abandon protected mode and jump to 0x7c00 */
 .code32
 chainload_asm:
+	/* Recover drive number */
+	mov		4(%esp), %eax
+	mov		%al, drive_number
 	/* No interrupts now! */
 	cli
 	/* New stack */
@@ -42,10 +45,12 @@ chainload_asm_16_real:
 	lidt	real_idt
 
 	/* Farewell */
-	mov		$0, %dl
+	mov		drive_number, %dl
 	sti
 	ljmp	$0x00,$0x7C00
 
+drive_number:
+.byte	0x00
 real_idt:
 .word	0x03FF // Limit
 .word	0x0000 // Base high
