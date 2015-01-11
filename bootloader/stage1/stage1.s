@@ -41,12 +41,12 @@ bsFileSystem:			.byte	'F','A','T','1','2',' ',' ',' '
 /* Continue */
 loader:
 	/* Reset segment registers */
-	xor	%ax, %ax
-	mov	%ax, %ds
-	mov	%ax, %es
+	xor		%ax, %ax
+	mov		%ax, %ds
+	mov		%ax, %es
 
 	/* Store boot drive */
-	mov %dl, bootDrive
+	mov		%dl, bootDrive
 
 	/* Just say we are here :-) */
 	mov		$strLoading, %si

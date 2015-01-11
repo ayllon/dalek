@@ -153,7 +153,7 @@ gdtTable:
 	#include "gdt.S"
 
 gdtToc:
-	.word	gdtToc - gdtTable -1	/* Size of GDT */
+	.word	gdtToc - gdtTable - 1	/* Size of GDT */
 	.int	gdtTable		/* Base of GDT */
 
 /* Struct passed to main */
