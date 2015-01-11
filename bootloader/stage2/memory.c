@@ -5,12 +5,14 @@
 #include <types.h>
 #include <ports.h>
 #include <stdio.h>
+#include <panic.h>
 
 // Memory information
 static uint64_t mem_size = 0; // In KB!!
 
-static struct memory_block_node *mem_free_blocks_list;
-static struct memory_block_node *mem_used_blocks_list;
+const SMAPEntry *mem_pool = NULL;;
+static MemoryBlockNode *mem_free_blocks_list;
+static MemoryBlockNode *mem_used_blocks_list;
 
 /**
  * Test the memory to get the size
@@ -39,29 +41,41 @@ size_t mm_size(void)
  */
 void mm_initialize(const BootInformation* boot_info)
 {
-    struct memory_block_node *mem_node;
-    extern uint32_t _end;
+    MemoryBlockNode *mem_node;
 
     // Get memory size
     mm_get_memory_size(boot_info);
 
+    // Use the first block over 1MB as memory pool
+    uint16_t i;
+    for (i = 0; i < boot_info->smap_size; ++i) {
+        const SMAPEntry *ent = &(boot_info->smap_entries[i]);
+        if (SMAP_ENTRY_IS_USABLE(ent) && ent->base >= 0x100000) {
+            mem_pool = ent;
+        }
+    }
+
+    if (!mem_pool) {
+        panic(__func__, "Could not find any available memory pool");
+    }
+
     // Start of free memory
-    mem_used_blocks_list = (struct memory_block_node*) &_end;
+    mem_used_blocks_list = (MemoryBlockNode*) mem_pool->base;
 
     mem_node = mem_used_blocks_list;
 
-    mem_node->start = 0x00;
-    mem_node->size = (uint32_t) (mem_node + 2 * sizeof(struct memory_block_node));
+    mem_node->start = (void*)mem_pool->base;
+    mem_node->size = sizeof(MemoryBlockNode);
     mem_node->prev = mem_node->next = NULL;
 
-    // Free memory: the rest until 1MB barrier
+    // Free memory: the rest
     mem_free_blocks_list = mem_used_blocks_list
-            + sizeof(struct memory_block_node);
+            + sizeof(MemoryBlockNode);
 
     mem_node = mem_free_blocks_list;
 
-    mem_node->start = mem_node + sizeof(struct memory_block_node);
-    mem_node->size = 0x100000 - (uint32_t) (mem_node->start);
+    mem_node->start = mem_node + sizeof(MemoryBlockNode);
+    mem_node->size = mem_pool->length - (uint32_t) (mem_node->start);
     mem_node->prev = mem_node->next = NULL;
 
 }
@@ -72,8 +86,8 @@ void mm_initialize(const BootInformation* boot_info)
  */
 void *malloc(size_t size)
 {
-    struct memory_block_node *mem_node, *used_node;
-    uint32_t block_size = size + sizeof(struct memory_block_node);
+    MemoryBlockNode *mem_node, *used_node;
+    uint32_t block_size = size + sizeof(MemoryBlockNode);
     uint32_t biggest = 0;
 
     mem_node = mem_free_blocks_list;
@@ -93,9 +107,9 @@ void *malloc(size_t size)
         return NULL ;
     }
 
-    // We have a block that it is enought
+    // We have a block that it is enough
     // Mark as used (we've got space for this node also)
-    // Insert the node at the beggining (it is fastest)
+    // Insert the node at the beginning (it is fastest)
     used_node = mem_node->start;
 
     used_node->size = block_size;
@@ -125,7 +139,7 @@ void *malloc(size_t size)
     }
 
     // Return
-    return used_node->start + sizeof(struct memory_block_node);
+    return used_node->start + sizeof(MemoryBlockNode);
 }
 
 /**
@@ -133,12 +147,12 @@ void *malloc(size_t size)
  */
 void free(void *ptr)
 {
-    struct memory_block_node *mem_node, *free_node;
+    MemoryBlockNode *mem_node, *free_node;
     void *offset;
 
     // Search the block (be careful: the pointer points to start+sizeof(...)
     mem_node = mem_used_blocks_list;
-    offset = ptr - sizeof(struct memory_block_node);
+    offset = ptr - sizeof(MemoryBlockNode);
 
     while (mem_node) {
         if (mem_node->start == offset)
@@ -180,7 +194,7 @@ void free(void *ptr)
             free_node = free_node->next;
         }
         // Otherwise, new node
-        free_node = malloc(sizeof(struct memory_block_node));
+        free_node = malloc(sizeof(MemoryBlockNode));
         free_node->start = mem_node->start;
         free_node->size = mem_node->size;
         free_node->prev = NULL;
@@ -229,7 +243,7 @@ void *memcpy(void *dest, const void *src, size_t count)
  */
 void mm_allocatable_free(size_t *total, size_t *biggest)
 {
-    struct memory_block_node *mem_node;
+    MemoryBlockNode *mem_node;
 
     // Init
     *biggest = 0;
@@ -247,7 +261,7 @@ void mm_allocatable_free(size_t *total, size_t *biggest)
  */
 size_t mm_allocatable_used()
 {
-    struct memory_block_node *mem_node;
+    MemoryBlockNode *mem_node;
     uint32_t s;
 
     s = 0;
@@ -256,4 +270,12 @@ size_t mm_allocatable_used()
         s += mem_node->size;
 
     return s;
+}
+
+/**
+ * Start position of the allocatable pool
+ */
+const void* mm_allocatable_start()
+{
+    return (const void*)mem_pool->base;
 }

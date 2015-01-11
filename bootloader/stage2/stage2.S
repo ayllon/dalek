@@ -6,9 +6,6 @@
  * In BX we have the boot drive
  */
 
-#define ASM 1
-#include <memory.h>
-
 .code16
 .text
 .global start
@@ -17,13 +14,19 @@
 start:
 	cli
 	mov		%bx, bootDrive
-	/* Setup segments and stack */
+
+	/* Set stack
+	 * There should be 30KiB available here
+	 * http://wiki.osdev.org/Memory_Map_%28x86%29
+	 */
+	mov		$0x00007BFF, %esp
+	mov		%esp, %ebp
+
+	/* Setup segments */
 	xor		%ax, %ax
 	mov		%ax, %ds
 	mov		%ax, %es
-	mov		$0x9000, %ax
 	mov		%ax, %ss
-	mov		$0xFFFF, %sp
 	sti
 
 	/* Set the GDT */
@@ -137,10 +140,6 @@ stage3:
 	mov		%ax, %ss
 	mov		%ax, %es
 
-	/* Set stack */
-	mov		$(stack + STACK_SIZE), %esp
-	mov		%esp, %ebp
-
 	/* Enable A20 */
 	mov		$0xDD, %al
 	out		%al, $0x64
@@ -167,6 +166,3 @@ memoryMapNbEntries:
 	.word	0
 memoryMapEntries:
 	.zero 768
-
-/* Stack */
-.comm	stack, STACK_SIZE

@@ -26,6 +26,7 @@ uint8_t memory(uint8_t argn, const char **argv)
         used = mm_allocatable_used();
         printf("Allocatable memory: %z bytes (%f KB)\n",
                size + used, ((double)(size + used)) / 1024.0);
+        printf("\tStarting at 0x%p\n", mm_allocatable_start());
         printf("\tUsed:\t%z bytes (%f KB)\n",
                used, ((double)used) / 1024.0);
         printf("\tFree:\t%z bytes (%f KB)\n",
