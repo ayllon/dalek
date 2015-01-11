@@ -30,25 +30,27 @@
 #define FD_CONFIG_CONTROL   0x07 // read-only
 
 /* Commands */
-#define FD_READ_TRACK         2
-#define FD_SPECIFY            3
-#define FD_SENSE_DRIVE_STATUS 4
-#define FD_WRITE_DATA         5
-#define FD_READ_DATA          6
-#define FD_RECALIBRATE        7
-#define FD_SENSE_INTERRUPT    8
-#define FD_WRITE_DELETED_DATA 9
-#define FD_READ_ID            10
-#define FD_READ_DELETED_DATA  12
-#define FD_FORMAT_TRACK       13
-#define FD_SEEK               15
-#define FD_VERSION            16
-#define FD_SCAN_EQUAL         17
-#define FD_PERPENDICULAR_MODE 18
-#define FD_CONFIGURE          19
-#define FD_VERIFY             22
-#define FD_SCAN_LOW_OR_EQUAL  25
-#define FD_SCAN_HIGH_OR_EQUAL 29
+#define FD_READ_TRACK         0x02
+#define FD_SPECIFY            0x03
+#define FD_SENSE_DRIVE_STATUS 0x04
+#define FD_WRITE_DATA         0x05
+#define FD_READ_DATA          0x06
+#define FD_RECALIBRATE        0x07
+#define FD_SENSE_INTERRUPT    0x08
+#define FD_WRITE_DELETED_DATA 0x09
+#define FD_READ_ID            0x0a
+#define FD_READ_DELETED_DATA  0x0c
+#define FD_FORMAT_TRACK       0x0d
+#define FD_SEEK               0x0f
+#define FD_VERSION            0x10
+#define FD_SCAN_EQUAL         0x11
+#define FD_PERPENDICULAR_MODE 0x12
+#define FD_CONFIGURE          0x13
+#define FD_UNLOCK             0x14
+#define FD_VERIFY             0x16
+#define FD_SCAN_LOW_OR_EQUAL  0x19
+#define FD_SCAN_HIGH_OR_EQUAL 0x1d
+#define FD_LOCK               0x94
 
 /* Gap */
 #define FD_GAP3               27
@@ -95,20 +97,15 @@ typedef struct {
 void fd_init(void);
 
 /**
- * Sends a command
- */
-void fd_send_byte(Floppy *f, uint8_t command);
-
-/**
  * Resets the controller
  */
-int fd_reset(Floppy *f);
+int fd_reset(uint16_t base);
 
 /**
  * Move to cylinder 0, which calibrates the drive
  * Initializes drivers
  */
-int fd_calibrate(Floppy *drive);
+int fd_recalibrate(Floppy *drive);
 
 /**
  * Changes the status of the motor

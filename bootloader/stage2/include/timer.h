@@ -23,4 +23,7 @@ int timer_register_task(timer_callback func, uint32_t ms);
 /* Unregister a function from the list */
 void timer_unregister_task(int task_id);
 
+/* Returns the current tick */
+int timer_get_tick(void);
+
 #endif

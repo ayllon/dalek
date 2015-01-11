@@ -43,7 +43,7 @@ static FloppyGeometry drive_geometry[] =
     FLOPPY_UNSUPPORTED  // unknown
 };
 
-static uint8_t irq_waiting = 0;
+static volatile uint8_t irq_waiting = 0;
 
 Floppy fd_units[2];
 
@@ -76,11 +76,21 @@ void fd_timer(int task_id)
 /**
  * Wait until we get an interrupt
  */
-void fd_wait_irq()
+int fd_wait_irq(int timeout)
 {
-    while (irq_waiting == 0)
-        asm("nop");
-    irq_waiting--;
+    int start = timer_get_tick();
+    while (irq_waiting == 0 && ((timer_get_tick() - start) < timeout)) {
+        asm("hlt");
+    }
+    if (irq_waiting > 0) {
+        irq_waiting--;
+        return 0;
+    }
+    else {
+        log(LOG_WARN, __func__, "Timeout (%d)", timeout);
+        errno = ETIME;
+        return -1;
+    }
 }
 
 /**
@@ -93,6 +103,28 @@ static void fd_device_bind_methods(IODevice* fd)
     fd->write = fd_write;
 }
 
+
+static void fd_send_byte(uint16_t base, uint8_t command)
+{
+    outportb(base + FD_DATA_FIFO, command);
+}
+
+
+static uint8_t fd_recv_byte(uint16_t base)
+{
+    return inportb(base + FD_DATA_FIFO);
+}
+
+
+static void fd_configure(uint16_t base, uint8_t seek, uint8_t fifo,
+        uint8_t polling, uint8_t threshold, uint8_t precompensation)
+{
+    fd_send_byte(base, FD_CONFIGURE);
+    fd_send_byte(base, 0x00);
+    fd_send_byte(base, (seek << 6) | (fifo << 5) | (polling << 4) | (threshold - 1));
+    fd_send_byte(base, precompensation);
+}
+
 /** Initialize */
 void fd_init(void)
 {
@@ -103,14 +135,40 @@ void fd_init(void)
     fd_units[0].drive_number = 0xFF;
     fd_units[1].drive_number = 0xFF;
 
+    /* Check version */
+    fd_send_byte(FD_PRIMARY_BASE, FD_VERSION);
+    uint8_t version = fd_recv_byte(FD_PRIMARY_BASE);
+    if (version != 0x90) {
+        log(LOG_WARN, __func__, "Unknown floppy controller version: %x", version);
+        return;
+    }
+
     /* Register handler */
     irq_install_handler(6, fd_irq_handler);
 
-    /* Look for drives */
+    /* Ask CMOS for drives */
     outportb(0x70, 0x10);
     drives = inportb(0x71);
     a = drives >> 4;
     b = drives & 0xF;
+
+    /* Reset controller */
+    if (fd_reset(FD_PRIMARY_BASE) < 0) {
+        log(LOG_ERROR, __func__, "Failed to reset the floppy controller (%d)", errno);
+    }
+
+    /* Configure the controller
+     * implied seek on, FIFO on, drive polling mode off, threshold = 8, precompensation 0
+     */
+    fd_configure(FD_PRIMARY_BASE, 1, 1, 0, 8, 0);
+
+    /* Lock so the configuration does not change after reset */
+    fd_send_byte(FD_PRIMARY_BASE, FD_LOCK);
+    uint8_t locked = fd_recv_byte(FD_PRIMARY_BASE);
+    if (locked != 0x10) {
+        log(LOG_ERROR, __func__, "Failed to lock the floppy configuration (%x)", locked);
+        return;
+    }
 
     /* Drive 0 */
     if (a) {
@@ -122,7 +180,6 @@ void fd_init(void)
             fd->geometry = drive_geometry[a];
             fd->n_blocks = fd->geometry.spt * fd->geometry.tracks * fd->geometry.heads;
             fd->block = 0;
-            fd_reset(fd);
             IODevice* fd0 = io_register_device("fd0", drive_types[a], fd);
             fd0->id = 0x00; // BIOS drive number
             fd_device_bind_methods(fd0);
@@ -141,7 +198,6 @@ void fd_init(void)
             fd->geometry = drive_geometry[b];
             fd->n_blocks = fd->geometry.spt * fd->geometry.tracks * fd->geometry.heads;
             fd->block = 0;
-            fd_reset(fd);
             IODevice* fd1 = io_register_device("fd1", drive_types[b], fd);
             fd1->id = 0x01; // BIOS drive number
             fd_device_bind_methods(fd1);
@@ -162,13 +218,14 @@ void fd_init(void)
  */
 void fd_deinit(void)
 {
-    register int i;
-    for (i = 0; i < sizeof(fd_units) / sizeof(Floppy); i++) {
-        if (fd_units[1].drive_number != 0xFF) {
-            fd_motor_kill(&fd_units[i]);
-            fd_reset(&fd_units[i]);
-        }
-    }
+    // Set configuration to the default
+    fd_configure(FD_PRIMARY_BASE, 0, 0, 1, 1, 0);
+    // Unblock
+    fd_send_byte(FD_PRIMARY_BASE, FD_UNLOCK);
+    // Reset
+    fd_reset(FD_PRIMARY_BASE);
+    // Give time to motors to turn off
+    sleep(500);
 }
 
 REGISTER_IO(fd_init, fd_deinit);
@@ -177,10 +234,10 @@ REGISTER_IO(fd_init, fd_deinit);
 /**
  * Waits until the floppy is ready
  */
-static int fd_wait_ready(Floppy *f)
+static int fd_wait_ready(Floppy *fd)
 {
     uint32_t i = 0;
-    while (!(0x80 & inportb(f->base + FD_MAIN_STATUS))) {
+    while (!(0x80 & inportb(fd->base + FD_MAIN_STATUS))) {
         sleep(10); // Sleep 10 milliseconds
         i++;
         // If we have slept 6000 ms, abort
@@ -193,90 +250,80 @@ static int fd_wait_ready(Floppy *f)
 }
 
 
-void fd_send_byte(Floppy *fd, uint8_t command)
-{
-    outportb(fd->base + FD_DATA_FIFO, command);
-}
-
-
-uint8_t fd_recv_byte(Floppy *fd)
-{
-    return inportb(fd->base + FD_DATA_FIFO);
-}
-
-
 static int fd_check_interrupt(Floppy *fd, int *st0, int *cyl)
 {
     if (fd_wait_ready(fd) < 0)
         return -1;
 
-    fd_send_byte(fd, FD_SENSE_INTERRUPT); // Interrupt received
+    fd_send_byte(fd->base, FD_SENSE_INTERRUPT); // Interrupt received
 
     fd_wait_ready(fd);
-    *st0 = fd_recv_byte(fd);
-    *cyl = fd_recv_byte(fd);
+    *st0 = fd_recv_byte(fd->base);
+    *cyl = fd_recv_byte(fd->base);
     return 0;
 }
 
 
-int fd_reset(Floppy *fd)
+int fd_reset(uint16_t base)
 {
-    int st0, cyl;
+    outportb(base + FD_DIGITAL_OUTPUT, 0x00); // Disable
+    sleep(10); // Give it time
+    outportb(base + FD_DIGITAL_OUTPUT, 0x0c); // Enable with motors off
+    sleep(10); // Give it time
 
-    outportb(fd->base + FD_DIGITAL_OUTPUT, 0x00 | fd->drive_number); // Disable
-    outportb(fd->base + FD_DIGITAL_OUTPUT, 0x0C | fd->drive_number); // Enable
     // Wait interrupt
-    fd_wait_irq();
-    // Check interrupt
-    if (fd_check_interrupt(fd, &st0, &cyl) < 0)
+    if (fd_wait_irq(2000) < 0)
         return -1;
+
     // Set transfer speed to 500 Kb/s
-    outportb(fd->base + FD_CONFIG_CONTROL, 0x00);
-
-    // Set steprate, head unload and head load
-    fd_wait_ready(fd);
-    fd_send_byte(fd, FD_SPECIFY);
-    fd_send_byte(fd, 0xDF); // steprate = 3ms, unload time = 240ms
-    fd_send_byte(fd, 0x03); // load time = 16ms, no-DMA = 1;
-
-    // Fail?
-    if (fd_calibrate(fd))
-        return -1;
+    outportb(base + FD_CONFIG_CONTROL, 0x00);
 
     return 0;
 }
 
 
-int fd_calibrate(Floppy *fd)
+int fd_recalibrate(Floppy *fd)
 {
     int i, st0, cyl = -1; // set to bogus cylinder
+    fd_wait_ready(fd);
 
-    fd_motor(fd, FD_MOTOR_ON);
+    // Dummy seek to force error if no media
+    fd_send_byte(fd->base, FD_SEEK);
+    fd_send_byte(fd->base, fd->drive_number);
+    fd_send_byte(fd->base, 0x01);
+
+    if (fd_wait_irq(5000) < 0)
+        return -1;
+
+    if (fd_check_interrupt(fd, &st0, &cyl) < 0)
+        return -1;
+    if (cyl != 0x1) {
+        errno = EAGAIN;
+        return -1;
+    }
 
     // 10 attempts
     for (i = 0; i < 10; i++) {
-        fd_wait_ready(fd);
-        fd_send_byte(fd, FD_RECALIBRATE);
-        fd_send_byte(fd, (fd->base == FD_PRIMARY_BASE) ? 0 : 1); // argument is drive
+        fd_send_byte(fd->base, FD_RECALIBRATE);
+        fd_send_byte(fd->base, fd->drive_number);
 
-        fd_wait_irq();
+        if (fd_wait_irq(5000) < 0)
+            return -1;
+
         if (fd_check_interrupt(fd, &st0, &cyl) < 0)
             return -1;
 
-        if (st0 & 0xC0) {
-            static const char * status[] = { 0, "error", "invalid", "drive" };
-            printf("fd_calibrate: Status = %s\n", status[st0 >> 6]);
+        if ((st0 & 0xC0) || (st0 & 0x20)) {
             continue;
         }
 
-        if (!cyl) { // found cylinder 0 ?
-            fd_motor(fd, FD_MOTOR_OFF);
+        if (cyl == 0) { // found cylinder 0 ?
             return 0;
         }
     }
 
-    printf("floppy_calibrate: 10 retries exhausted\n");
-    fd_motor(fd, FD_MOTOR_OFF);
+    errno = EAGAIN;
+    log(LOG_WARN, __func__, "10 retries exhausted");
     return -1;
 }
 
@@ -286,8 +333,10 @@ void fd_motor(Floppy *fd, int stat)
     // ON
     if (stat == FD_MOTOR_ON) {
         if (fd->motor_state == FD_MOTOR_OFF) {
-            // Turn on
-            outportb(fd->base + FD_DIGITAL_OUTPUT, 0x1C | fd->drive_number);
+            uint8_t dor;
+            dor = inportb(fd->base + FD_DIGITAL_OUTPUT);
+            dor |= (0x10 << fd->drive_number);
+            outportb(fd->base + FD_DIGITAL_OUTPUT, dor);
             sleep(500);
         }
         fd->motor_state = FD_MOTOR_ON;
@@ -295,7 +344,7 @@ void fd_motor(Floppy *fd, int stat)
     // OFF
     else {
         if (fd->motor_state == FD_MOTOR_WAIT) {
-            printf("fd_motor: Floppy motor state already waiting...\n");
+            log(LOG_INFO, __func__, "Floppy motor state already waiting...\n");
         }
         fd->motor_ticks = 300; // 3 seconds
         fd->motor_state = FD_MOTOR_WAIT;
@@ -305,7 +354,10 @@ void fd_motor(Floppy *fd, int stat)
 
 void fd_motor_kill(Floppy *fd)
 {
-    outportb(fd->base + FD_DIGITAL_OUTPUT, 0x0C | fd->drive_number);
+    uint8_t dor;
+    dor = inportb(fd->base + FD_DIGITAL_OUTPUT);
+    dor &= (~(0x10 << fd->drive_number));
+    outportb(fd->base + FD_DIGITAL_OUTPUT, dor);
     fd->motor_state = FD_MOTOR_OFF;
 }
 
@@ -316,25 +368,6 @@ static void fd_block2hcs(FloppyGeometry* geometry, int block, int *head,
    *head = (block % (geometry->spt * geometry->heads)) / (geometry->spt);
    *track = block / (geometry->spt * geometry->heads);
    *sector = block % geometry->spt + 1;
-}
-
-
-static int fd_physical_seek(Floppy *fd, int head, int cyl)
-{
-    fd_wait_ready(fd);
-    fd_send_byte(fd, FD_SEEK);
-    fd_send_byte(fd, head << 2);
-    fd_send_byte(fd, cyl);
-
-    int st0, resulting_cyl;
-    if (fd_check_interrupt(fd, &st0, &resulting_cyl) < 0)
-        return -1;
-
-    if (st0 != 0x20 || (resulting_cyl != cyl)) {
-        errno = EIO;
-        return -1;
-    }
-    return 0;
 }
 
 
@@ -487,11 +520,6 @@ static int fd_rw_block(Floppy* fd, uint8_t write)
 
     fd_block2hcs(&fd->geometry, fd->block, &head, &cyl, &sector);
 
-    if (fd_physical_seek(fd, head, cyl) < 0) {
-        log(LOG_WARN, __func__, "Failed to seek to block %d", fd->block);
-        return -1;
-    }
-
     int cmd = 0xC0;
     if (write)
         cmd |= FD_WRITE_DATA;
@@ -500,43 +528,82 @@ static int fd_rw_block(Floppy* fd, uint8_t write)
 
     int retry;
     for (retry = 0; retry < 10; ++retry) {
-        fd_motor(fd, FD_MOTOR_ON);
         fd_setup_dma(fd, fd_dma_buffer, 512, write);
-        sleep(10);
 
-        fd_send_byte(fd, cmd);
-        fd_send_byte(fd, head<<2|fd->drive_number);
-        fd_send_byte(fd, cyl);
-        fd_send_byte(fd, head);
-        fd_send_byte(fd, sector);
-        fd_send_byte(fd, 2);    // 512 bytes/sec
-        fd_send_byte(fd, 1);    // number of tracks
-        fd_send_byte(fd, FD_GAP3);
-        fd_send_byte(fd, 0xFF); // unused?
+        fd_send_byte(fd->base, cmd);
+        fd_send_byte(fd->base, head<<2|fd->drive_number);
+        fd_send_byte(fd->base, cyl);
+        fd_send_byte(fd->base, head);
+        fd_send_byte(fd->base, sector);
+        fd_send_byte(fd->base, 2);    // 512 bytes/sec
+        fd_send_byte(fd->base, 1);    // number of tracks
+        fd_send_byte(fd->base, FD_GAP3);
+        fd_send_byte(fd->base, 0xFF); // unused?
 
-        fd_wait_irq();
+        if (fd_wait_irq(2000) < 0) {
+            fd_reset(fd->base);
+            return -1;
+        }
 
         // status
         uint8_t st0, st1, st2, bps;
         uint8_t __attribute__((unused)) rcy, rhe, rse;
 
-        st0 = fd_recv_byte(fd);
-        st1 = fd_recv_byte(fd);
-        st2 = fd_recv_byte(fd);
-        rcy = fd_recv_byte(fd);
-        rhe = fd_recv_byte(fd);
-        rse = fd_recv_byte(fd);
+        st0 = fd_recv_byte(fd->base);
+        st1 = fd_recv_byte(fd->base);
+        st2 = fd_recv_byte(fd->base);
+        rcy = fd_recv_byte(fd->base);
+        rhe = fd_recv_byte(fd->base);
+        rse = fd_recv_byte(fd->base);
         // bytes per sector
-        bps = fd_recv_byte(fd);
+        bps = fd_recv_byte(fd->base);
 
-        //merrno = fd_errno_mapping(st0, st1, st2, bps);
-        errno = 0;
+        errno = fd_errno_mapping(st0, st1, st2, bps);
         if (!errno)
             break;
     }
 
     if (errno)
         return -1;
+    return 0;
+}
+
+
+/** Prepare the floppy for IO
+ */
+static int fd_activate(Floppy* fd)
+{
+    // Turn on
+    uint8_t dor = inportb(fd->base + FD_DIGITAL_OUTPUT);
+    dor &= 0xFC;
+    dor |= fd->drive_number;
+    outportb(fd->base + FD_DIGITAL_OUTPUT, dor);
+
+    fd_motor(fd, FD_MOTOR_ON);
+
+    // If there was a change, calibrate
+    int stat = 0;
+    uint8_t dir = inportb(fd->base + FD_DIGITAL_INPUT);
+    if (dir & 0x80) {
+        log(LOG_INFO, __func__, "Detected a floppy change, try to recalibrate");
+        stat = fd_recalibrate(fd);
+        if (stat < 0) {
+            log(LOG_WARN, __func__, "Failed to recalibrate");
+            fd_motor(fd, FD_MOTOR_OFF);
+        }
+        else {
+            log(LOG_INFO, __func__, "Floppy recalibrated");
+        }
+    }
+
+    return stat;
+}
+
+/** Deactivate the floppy
+ */
+static int fd_deactivate(Floppy* fd)
+{
+    fd_motor(fd, FD_MOTOR_OFF);
     return 0;
 }
 
@@ -557,12 +624,20 @@ ssize_t fd_read(IODevice* self, void* buffer, size_t nbytes)
     size_t nblocks = nbytes / 512;
     size_t i, offset = 0;
 
+    if (fd_activate(fd) < 0)
+        return -1;
+
     // Read full blocks
     for (i = 0; i < nblocks; ++i, offset += 512) {
-        fd_rw_block(fd, 0);
+        if (fd_rw_block(fd, 0) < 0) {
+            offset = -1;
+            break;
+        }
         memcpy(buffer + offset, fd_dma_buffer, 512);
         ++fd->block;
     }
+
+    fd_deactivate(fd);
 
     return offset;
 }
