@@ -9,6 +9,11 @@
 #include <registers.h>
 #include <types.h>
 
+#define PIC_MASTER_PORT_A  0x20
+#define PIC_MASTER_PORT_B  0x21
+#define PIC_SLAVE_PORT_A   0xA0
+#define PIC_SLAVE_PORT_B   0xA1
+
 extern void _irq0();
 extern void _irq1();
 extern void _irq2();

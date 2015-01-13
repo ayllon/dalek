@@ -40,20 +40,39 @@ void irq_uninstall_handler(uint8_t irq)
 void irq_remap()
 {
     int a1, a2;
-    a1 = inportb(0x20);
-    a2 = inportb(0xA0);
+    a1 = inportb(PIC_MASTER_PORT_A);
+    a2 = inportb(PIC_SLAVE_PORT_A);
 
-    outportb(0x20, 0x11);
-    outportb(0xA0, 0x11);
-    outportb(0x21, 0x20);
-    outportb(0xA1, 0x28);
-    outportb(0x21, 0x04);
-    outportb(0xA1, 0x02);
-    outportb(0x21, 0x01);
-    outportb(0xA1, 0x01);
+    /* See http://www.acm.uiuc.edu/sigops/roll_your_own/i386/irq.html */
 
-    outportb(0x21, a1);
-    outportb(0xA1, a2);
+    /* ICW1
+     * 0 | 0 | 0 | 1 | Trigger | 0 | Master/slave config |  There will be ICW4
+     * Set to 00010001 => Edge triggered, Master/Slave configuration, There will be ICW4 */
+    outportb(PIC_MASTER_PORT_A, 0x11);
+    outportb(PIC_SLAVE_PORT_A,  0x11);
+
+    /* ICW2
+     * Offset into the IDT, last 3 bits always 0
+     * This is effectively moving the master to entry 32 to 39, and slave
+     * from 40 to 47 */
+    outportb(PIC_MASTER_PORT_B, 0x20);
+    outportb(PIC_SLAVE_PORT_B,  0x28);
+
+    /* ICW3
+     * Bit N set to 1 if IR line N is connected to slave */
+    outportb(PIC_MASTER_PORT_B, 0x04);
+    /* Last three bits: IRQ on master this slave is connected to */
+    outportb(PIC_SLAVE_PORT_B,  0x02);
+
+    /* ICW4
+     * 0 | 0 | 0 | Special fully nested mode | Buffered | Master/Slave  | Automatic EOI | Mode
+     * Set to 0b00000101 => Master PIC, 8086/88 mode  */
+    outportb(PIC_MASTER_PORT_B, 0x05);
+    /* Same thing for Slave PIC */
+    outportb(PIC_SLAVE_PORT_B,  0x01);
+
+    outportb(PIC_MASTER_PORT_B, a1);
+    outportb(PIC_SLAVE_PORT_B,  a2);
 }
 
 
@@ -95,5 +114,7 @@ void irq_handler(Registers r, unsigned int_no, unsigned err_code,
                 int_no - 32, err_code);
     }
 
-    outportb(0x20, 0x20);
+    /* End Of Interrupt */
+    outportb(PIC_MASTER_PORT_A, 0x20);
+    outportb(PIC_MASTER_PORT_B, 0x20);
 }
