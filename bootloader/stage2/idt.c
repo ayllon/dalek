@@ -125,14 +125,15 @@ static char *isr_exception_string[] =
    "Machine Check Exception"
 };
 
-void isr_base_handler(Registers *r)
+void isr_base_handler(Registers r, unsigned int_no, unsigned err_code,
+        unsigned eip, unsigned cs, unsigned eflags)
 {
-    if (r->int_no < 19) {
-        panic(__func__, "(%i, %i) %s\n", r->int_no, r->err_code,
-                isr_exception_string[r->int_no]);
+    if (int_no < 19) {
+        panic(__func__, "(%i, %i) %s\n", int_no, err_code,
+                isr_exception_string[int_no]);
     }
     else {
-        panic(__func__, "(%i, %i) Reserved exception\n", r->int_no,
-                r->err_code);
+        panic(__func__, "(%i, %i) Reserved exception\n", int_no,
+                err_code);
     }
 }

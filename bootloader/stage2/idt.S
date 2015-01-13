@@ -254,28 +254,35 @@ _isr31:
 	push $31
 	jmp isr_common_handler
 
-/* GENERAL EXCEPTION HANDLER */
+/* Exception handler */
 isr_common_handler:
+    /* Save registers */
 	pusha
-	push %ds
-	push %es
-	push %fs
-	push %gs
-	mov $0x10, %ax  /* Load the Data Segment descriptor */
-	mov %ax, %ds
-	mov %ax, %es
-	mov %ax, %fs
-	mov %ax, %gs
-	mov %esp, %eax
-	push %eax
-	mov $isr_base_handler, %eax
-	call *%eax
-	pop %eax
-	pop %gs
-	pop %fs
-	pop %es
-	pop %ds
+	push   %cs
+	push   %ds
+	push   %ss
+	push   %es
+
+    /* Load the Data Segment descriptor */
+	mov    $0x10, %ax
+	mov    %ax, %ds
+	mov    %ax, %es
+	mov    %ax, %fs
+	mov    %ax, %gs
+
+	/* Call */
+	call   isr_base_handler
+
+	/* Recover registers */
+	pop    %es
+	pop    %ss
+	pop    %ds
+	add     $4, %esp // Note that cs can not be 'pop'
 	popa
+
+    /* Jump over interrupt number and error code */
 	add $8, %esp
+
+	/* Carry on */
 	sti
 	iret

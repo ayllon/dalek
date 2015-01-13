@@ -8,7 +8,7 @@ file (GLOB cmds_src    "commands/*.c" "commands/*.S")
 file (GLOB dev_src     "devices/*/*.c")
 
 add_definitions (
-    "-ffreestanding -fno-stack-protector -fno-builtin -nostdinc -Wall -m32"
+    "-ffreestanding -fstack-protector -fno-builtin -nostdinc -Wall -m32"
 )
 
 add_executable (stage2.elf

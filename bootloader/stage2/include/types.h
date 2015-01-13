@@ -7,6 +7,7 @@
 #define NULL	(void*)(0x00)
 
 #ifdef __i386__
+
 typedef unsigned char  uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int   uint32_t;

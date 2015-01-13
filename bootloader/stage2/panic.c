@@ -6,6 +6,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+void* __stack_chk_guard = (void*)0x11caec4;
+
 
 void panic(const char* f, const char *s, ...)
 {
@@ -24,4 +26,10 @@ void panic(const char* f, const char *s, ...)
     asm("cli");
     while (1)
         asm("hlt");
+}
+
+// Called when a stack smash is detected
+void __stack_chk_fail(void)
+{
+    panic(__func__, "Stack smash detected!");
 }

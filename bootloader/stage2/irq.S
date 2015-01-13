@@ -118,40 +118,33 @@ _irq15:
 
 /* IRQ Handler */
 irq_common_handler:
-	/* Save all general purpose registers */
-	pusha
-	/* Save segment registers */
-	push %ds
-	push %es
-	push %fs
-	push %gs
-	/* Load the Kernel Data Segment descriptor */
-	mov $0x10, %ax
-	mov %ax, %ds
-	mov %ax, %es
-	mov %ax, %fs
-	mov %ax, %gs
-	/* Put in %eax the address of the top of the stack, and handle
-	 * this pointer as a paramter to irq_handler, so it gets the
-	 * values of the registers
-	 */
-	mov %esp, %eax
-	push %eax
-	/* Put in EAX the adress of irq_handler */
-	mov $irq_handler, %eax
-	/* Call it */
-	call *%eax
-	/* Recover segment registers as they were */
-	pop %eax
-	pop %gs
-	pop %fs
-	pop %es
-	pop %ds
-	popa
-	/* "Remove" the two values pushed by the caller */
-	add $8, %esp
-	/* Reenable signals */
-	sti
-	/* Return from signal */
-	iret
+    /* Save registers */
+    pusha
+    push   %cs
+    push   %ds
+    push   %ss
+    push   %es
 
+    /* Load the Data Segment descriptor */
+    mov    $0x10, %ax
+    mov    %ax, %ds
+    mov    %ax, %es
+    mov    %ax, %fs
+    mov    %ax, %gs
+
+    /* Call */
+    call   irq_handler
+
+    /* Recover registers */
+    pop     %es
+    pop     %ss
+    pop     %ds
+    add     $4, %esp // Note that cs can not be 'pop'
+    popa
+
+    /* Jump over interrupt number and error code */
+    add $8, %esp
+
+    /* Carry on */
+    sti
+    iret

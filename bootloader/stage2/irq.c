@@ -56,8 +56,7 @@ void irq_remap()
     outportb(0xA1, a2);
 }
 
-/**
- */
+
 void irq_install()
 {
     irq_remap();
@@ -81,19 +80,19 @@ void irq_install()
     log(LOG_INFO, __func__, "IRQ installed");
 }
 
-/**
- */
-void irq_handler(Registers *r)
+
+void irq_handler(Registers r, unsigned int_no, unsigned err_code,
+        unsigned eip, unsigned cs, unsigned eflags)
 {
     void (*handler)(Registers *r);
 
-    handler = irq_routines[r->int_no - 32];
+    handler = irq_routines[int_no - 32];
     if (handler) {
-        handler(r);
+        handler(&r);
     }
     else {
         printf("[irq_handler(%i, %i)] Interrupt without handler. Ignore.\n",
-                r->int_no - 32, r->err_code);
+                int_no - 32, err_code);
     }
 
     outportb(0x20, 0x20);
