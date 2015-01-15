@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <irq.h>
 #include <memory.h>
+#include <modules.h>
 #include <panic.h>
 #include <ports.h>
 #include <stdio.h>
@@ -126,7 +127,7 @@ static void fd_configure(uint16_t base, uint8_t seek, uint8_t fifo,
 }
 
 /** Initialize */
-void fd_init(void)
+int fd_init(void)
 {
     uint8_t drives, a, b;
     Floppy *fd;
@@ -140,7 +141,7 @@ void fd_init(void)
     uint8_t version = fd_recv_byte(FD_PRIMARY_BASE);
     if (version != 0x90) {
         log(LOG_WARN, __func__, "Unknown floppy controller version: %x", version);
-        return;
+        return -1;
     }
 
     /* Register handler */
@@ -167,7 +168,7 @@ void fd_init(void)
     uint8_t locked = fd_recv_byte(FD_PRIMARY_BASE);
     if (locked != 0x10) {
         log(LOG_ERROR, __func__, "Failed to lock the floppy configuration (%x)", locked);
-        return;
+        return -1;
     }
 
     /* Drive 0 */
@@ -211,12 +212,13 @@ void fd_init(void)
     timer_register_task(fd_timer, 50);
 
     log(LOG_INFO, __func__, "Floppy drives initialized");
+    return 0;
 }
 
 /**
  * Tear down floppy driver
  */
-void fd_deinit(void)
+int fd_deinit(void)
 {
     // Turn motors off
     outportb(FD_PRIMARY_BASE, 0x0c);
@@ -226,9 +228,16 @@ void fd_deinit(void)
     fd_configure(FD_PRIMARY_BASE, 0, 0, 1, 1, 0);
     // Unblock
     fd_send_byte(FD_PRIMARY_BASE, FD_UNLOCK);
+    // Reset
+    fd_reset(FD_PRIMARY_BASE);
+    // Give time to motors to turn off
+    sleep(500);
+    log(LOG_INFO, __func__, "Floppy module destroyed");
+    return 0;
 }
 
-REGISTER_IO(fd_init, fd_deinit);
+MODULE_INIT(fd_init);
+MODULE_DESTROY(fd_deinit);
 
 
 /**

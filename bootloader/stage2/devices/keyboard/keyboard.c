@@ -6,6 +6,7 @@
 #include <types.h>
 #include <io.h>
 #include <irq.h>
+#include <modules.h>
 #include <ports.h>
 #include <stdio.h>
 
@@ -151,7 +152,7 @@ ssize_t kb_read(IODevice* self, void* buffer, size_t nbytes)
 /**
  * Install handler
  */
-void kb_init(void)
+int kb_init(void)
 {
     irq_install_handler(KB_IRQ, kb_handler);
     kb_buffer.push_index = kb_buffer.pop_index = 0;
@@ -161,6 +162,7 @@ void kb_init(void)
 
     // Attach itself to stdin
     stdin = kb;
+    return 0;
 }
 
-REGISTER_IO(kb_init, NULL);
+MODULE_INIT(kb_init);

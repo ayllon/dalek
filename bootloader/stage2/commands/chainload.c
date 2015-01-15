@@ -4,6 +4,7 @@
 #include <cli.h>
 #include <errno.h>
 #include <io.h>
+#include <panic.h>
 #include <stdio.h>
 #include <strings.h>
 
@@ -52,15 +53,11 @@ uint8_t chainload(uint8_t argc, const char** argv)
         return -1;
     }
 
-    // De-initialize IO
-    io_deinit();
-
-    // Reset screen
-    printf("\x1b[37;40m\x1b[J");
-
     // Leave protected mode and jump
     chainload_asm(dev->id);
 
+    // Should be never reached
+    panic(__func__, "chainload_asm returned!!");
     return 0;
 }
 

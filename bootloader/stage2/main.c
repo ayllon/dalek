@@ -5,6 +5,7 @@
 #include <io.h>
 #include <irq.h>
 #include <memory.h>
+#include <modules.h>
 #include <stdio.h>
 #include <timer.h>
 
@@ -24,6 +25,8 @@ void main(BootInformation* boot_info)
     asm("sti");
     // Initialize IO
     io_init();
+    // Initialize modules
+    mod_init_all();
 
     // Welcome
     printf("Stage 2 loaded from drive %i\n", boot_info->boot_drive);
@@ -38,7 +41,7 @@ void main(BootInformation* boot_info)
     }
 
     // Launch command line interpreter
-    CLI();
+    cli_start();
 
     // Should never reach this, but just in case...
     while (1)

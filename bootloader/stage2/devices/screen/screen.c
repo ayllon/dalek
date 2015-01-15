@@ -3,6 +3,7 @@
  */
 #include <io.h>
 #include <memory.h>
+#include <modules.h>
 #include <ports.h>
 #include <stdio.h>
 #include <strings.h>
@@ -242,7 +243,7 @@ static ssize_t screen_write(IODevice* self, const void* buffer, size_t nbytes)
 /**
  * Initialize the screen
  */
-void screen_init(void)
+int screen_init(void)
 {
     IODevice *screen = io_register_device("screen", "Screen", NULL);
     screen->write = screen_write;
@@ -250,6 +251,7 @@ void screen_init(void)
 
     // Attach itself to stdout
     stdout = screen;
+    return 0;
 }
 
-REGISTER_IO_EARLY(screen_init, NULL);
+MODULE_INIT_LVL(screen_init, 0);

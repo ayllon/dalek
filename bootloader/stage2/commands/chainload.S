@@ -6,6 +6,8 @@ chainload_asm:
 	/* Recover drive number */
 	mov		4(%esp), %eax
 	mov		%al, drive_number
+	/* Destroy all modules */
+	call	mod_destroy_all
 	/* No interrupts now! */
 	cli
 
@@ -48,11 +50,14 @@ chainload_asm_16_real:
 	/* Setup idt */
 	lidt   real_idt
 
-	/* Re-enable interrupts */
-	sti
+	/* Reset video, clear screen */
+	xor		%ah, %ah
+	mov		$0x02, %al
+	int		$0x10
 
-	/* Put into dl the bootDrive */
-	mov    drive_number, %dl
+	/* Farewell */
+	mov		drive_number, %dl
+	sti
 
 	/* Farewell */
 	ljmp   $0x00,$0x7C00

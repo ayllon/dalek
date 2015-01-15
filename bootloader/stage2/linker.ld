@@ -8,15 +8,15 @@ SECTIONS
   .data : { *(.data) }
   .rodata : { *(.rodata) }
   
-  __k_cli_cmd : {
-    __start___k_cli_cmd = .;
-    *(SORT(__k_cli_cmd_*))
-    __stop___k_cli_cmd = .;
+  __k_mod_init : {
+    __start___k_mod_init = .;
+    *(SORT(__k_mod_init_*))
+    __stop___k_mod_init = .;
   }
-  __k_io : {
-  	__start___k_io = .;
-  	*(SORT(__k_io_*))
-  	__stop___k_io = .;
+  __k_mod_deinit : {
+  	__start___k_mod_destroy = .;
+  	*(SORT(__k_mod_deinit_*))
+  	__stop___k_mod_destroy = .;
   }
   
   end = .; _end = .; __end = .;

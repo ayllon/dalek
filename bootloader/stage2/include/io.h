@@ -11,25 +11,6 @@
 #include <types.h>
 
 /**
- * Macro to facilitate compile-time driver registering
- */
-typedef struct IOImpl {
-    void (*init)(void);
-    void (*deinit)(void);
-} IOImpl;
-
-#define REGISTER_IO_LVL(init, deinit, level) \
-    static IOImpl k_io_##init __attribute__((section("__k_io_"#level), used)) = { init, deinit };
-
-#define REGISTER_IO(init, deinit) \
-    REGISTER_IO_LVL(init, deinit, 99)
-#define REGISTER_IO_EARLY(init, deinit) \
-	REGISTER_IO_LVL(init, deinit, 0)
-
-extern IOImpl __start___k_io[];
-extern IOImpl __stop___k_io[];
-
-/**
  * SEEK whence values
  */
 #define SEEK_SET 0
@@ -60,11 +41,6 @@ typedef struct IONode IONode;
  * Initialize the subsystem
  */
 void io_init();
-
-/**
- * Deinitialize the subsystem
- */
-void io_deinit();
 
 /**
  * Register method

@@ -6,70 +6,38 @@
  */
 #ifndef __CLI_H__
 #define __CLI_H__
+
+#include <modules.h>
 #include <types.h>
 
 typedef struct {
+    void *next; // To be used by cli.c
     const char* name;
     const char* description;
     uint8_t (*func)(uint8_t argn, const char** argv);
 } CliCommand;
 
-#define REGISTER_CLI_COMMAND(cmd, descr, func) \
-    static const CliCommand k_cli_cmd_##func __attribute__((section("__k_cli_cmd_"#func), used)) = {cmd, descr, func};
+/** Helper for registration */
+#define REGISTER_CLI_COMMAND(name, descr, func) \
+    static CliCommand __cli_cmd_entry_##func = {NULL, name, descr, func }; \
+    static int __cli_cmd_register_##func(void) { \
+    	return cli_register(&__cli_cmd_entry_##func); \
+    } \
+    MODULE_INIT(__cli_cmd_register_##func)
 
-/* Defined in linker.ld */
-extern CliCommand __start___k_cli_cmd[];
-extern CliCommand __stop___k_cli_cmd[];
+/**
+ * Register a command
+ */
+int cli_register(CliCommand* cli);
 
-/* void CLI()
+/**
  * Main function of the Command Line Interpreter
  */
-void CLI();
-
-/** COMMANDS DECLARATIONS **
- * All commands function must have the form:
- * uint8 <function>(uint8, const char **args);
- * and return 0 if everything is OK
- */
+void cli_start();
 
 /**
- * Clear the screen
+ * Help command
  */
-uint8_t clear(uint8_t argn, const char **argv);
-
-/**
- * Information about the stage2 loader version
- */
-uint8_t version(uint8_t argn, const char **argv);
-
-/**
- * Reboots
- */
-uint8_t reboot(uint8_t argn, const char **argv);
-
-/**
- * Halts
- */
-uint8_t halt(uint8_t argn, const char **argv);
-
-/**
- * Prints a string (or set of strings)
- */
-uint8_t echo(uint8_t argn, const char **argv);
-
-/**
- * Prints information about the memory
- */
-uint8_t memory(uint8_t argn, const char **argv);
-
-/**
- * Tests the timer
- */
-uint8_t test_timer(uint8_t argn, const char **argv);
-
-/**
- * Get a list of registered devices
- */
-uint8_t devices(uint8_t argn, const char **argv);
+uint8_t cli_help(uint8_t argn, const char** argv);
 
 #endif

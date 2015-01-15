@@ -50,8 +50,4 @@
 
 #define KB_IRQ 1
 
-/** METHODS **/
-void kb_init(void);
-uint16_t kb_getc();
-
 #endif

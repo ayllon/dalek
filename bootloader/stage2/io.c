@@ -21,31 +21,6 @@ static IONode *first_device;
 void io_init()
 {
     first_device = NULL;
-    IOImpl* io_init;
-
-    log(LOG_INFO, __func__, "Initializing devices");
-
-    for (io_init = __start___k_io; io_init != __stop___k_io; ++io_init) {
-        io_init->init();
-    }
-
-    log(LOG_INFO, __func__, "Devices initialized");
-}
-
-
-void io_deinit()
-{
-    first_device = NULL;
-    IOImpl* io_init;
-
-    log(LOG_INFO, __func__, "De-initializing devices");
-
-    for (io_init = __start___k_io; io_init != __stop___k_io; ++io_init) {
-        if (io_init->deinit)
-            io_init->deinit();
-    }
-
-    log(LOG_INFO, __func__, "Devices de-initialized");
 }
 
 

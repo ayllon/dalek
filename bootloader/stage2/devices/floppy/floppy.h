@@ -92,11 +92,6 @@ typedef struct {
 
 
 /**
- * Initializes drivers
- */
-void fd_init(void);
-
-/**
  * Resets the controller
  */
 int fd_reset(uint16_t base);
