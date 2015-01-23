@@ -20,7 +20,7 @@ add_custom_target (install_stage1
 )
 
 add_custom_target (install_stage2
-    COMMAND mcopy -i "${FLOPPY_IMAGE}" -o "${CMAKE_CURRENT_BINARY_DIR}/root/stage2.bin" ::/
+    COMMAND mcopy -i "${FLOPPY_IMAGE}" -o "${CMAKE_CURRENT_BINARY_DIR}/root/*" ::/
     DEPENDS stage2.bin install_stage1
 )
 

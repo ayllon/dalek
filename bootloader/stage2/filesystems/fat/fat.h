@@ -63,4 +63,29 @@ typedef struct FatBS {
 } __attribute__((packed)) FatBS;
 
 
+// File attributes
+#define FAT_RDONLY       0x01
+#define FAT_HIDDEN       0x02
+#define FAT_SYSTEM       0x04
+#define FAT_VOLUME_LABEL 0x08
+#define FAT_SUBDIRECTORY 0x10
+#define FAT_ARCHIVE      0x20
+#define FAT_DEVICE       0x40
+
+typedef struct FatDirEntry {
+    uint8_t  name[8];
+    uint8_t  ext[3];
+    uint8_t  attr;
+    uint8_t  reserved;
+    uint8_t  created_ms;
+    uint16_t created_time;
+    uint16_t created_date;
+    uint16_t access_date;
+    uint16_t ea_index;
+    uint16_t modified_time;
+    uint16_t modified_date;
+    uint16_t first_cluster;
+    uint32_t size;
+} __attribute__((packed)) FatDirEntry;
+
 #endif /* __FAT_H__ */

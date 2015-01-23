@@ -17,6 +17,8 @@ struct FSHandle {
     uint32_t data_sec;
     uint32_t first_data_sec;
     uint32_t n_clusters;
+    uint32_t fat_size;
+    uint8_t* fat;
 };
 
 static const char *FAT_TYPE_STR[] = {
@@ -42,6 +44,8 @@ FSHandle* fat_get_handle(IODevice* dev)
         log(LOG_DEBUG, __func__, "Sectors per cluster is 0, skip");
         return NULL;
     }
+
+    fh.fat_size = fh.fat_bs.sec_per_fat * fh.fat_bs.bytes_per_sec;
 
     fh.root_dir_sec = (
             (fh.fat_bs.root_max_entries * 32)
@@ -90,9 +94,28 @@ FSHandle* fat_get_handle(IODevice* dev)
         log(LOG_INFO, __func__, "[OEM %.8s] %.11s", fh.fat_bs.oem, fh.fat_bs.fat1x.label);
 
     // Only FAT12 for the moment
-    if (fh.fat_type != FAT12) {
-        log(LOG_ERROR, __func__, "Only FAT12 for now");
+    if (fh.fat_type == FAT32) {
+        log(LOG_ERROR, __func__, "Only FATx for now");
         return NULL;
+    }
+
+    // Allocate space for the table and read
+    fh.fat = malloc(fh.fat_size);
+    if (io_seek(dev, fh.fat_bs.n_reserved_sec * 512, SEEK_SET) < 0 ||
+        io_read(dev, fh.fat, fh.fat_size) < 0) {
+        free(fh.fat);
+        log(LOG_ERROR, __func__, "Failed to read the FAT (%d)", errno);
+        return NULL;
+    }
+
+    // Read root
+    FatDirEntry entries[fh.fat_bs.root_max_entries];
+    io_seek(dev, fh.first_data_sec * 512, SEEK_SET);
+    io_read(dev, &entries, fh.fat_bs.root_max_entries * sizeof(FatDirEntry));
+    int i;
+    for (i = 0; entries[i].name[0]; ++i) {
+        if ((entries[i].attr ^ FAT_VOLUME_LABEL) && entries[i].attr != 0x0F)
+            printf("%.8s.%.3s\n", entries[i].name, entries[i].ext);
     }
 
     // Return a pointer to the heap
@@ -104,7 +127,15 @@ FSHandle* fat_get_handle(IODevice* dev)
 
 void fat_release_handle(FSHandle* handle)
 {
+    free(handle->fat);
     free(handle);
+}
+
+
+ino_t fat_get_root(FSHandle* handle)
+{
+    // Always for FAT1x
+    return 0x00;
 }
 
 
@@ -113,7 +144,7 @@ static FileSystemImpl fat_fs = {
     .name = "FAT",
     .get_handle = fat_get_handle,
     .release_handle = fat_release_handle,
-    .get_root = NULL,
+    .get_root = fat_get_root,
     .opendir = NULL,
     .readdir = NULL,
     .closedir = NULL,

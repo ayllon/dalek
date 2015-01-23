@@ -8,6 +8,7 @@
 static FileSystemImpl* fs_list = NULL;
 static FSHandle* root = NULL;
 static FileSystemImpl* root_fs = NULL;
+static ino_t cwd;
 
 
 void fs_register(FileSystemImpl* fs)
@@ -38,6 +39,7 @@ int fs_set_root(IODevice* dev)
         root = p->get_handle(dev);
         if (root) {
             root_fs = p;
+            cwd = root_fs->get_root(root);
             return 0;
         }
         p = p->next;
