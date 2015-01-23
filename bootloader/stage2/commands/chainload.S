@@ -8,6 +8,10 @@ chainload_asm:
 	mov		%al, drive_number
 	/* No interrupts now! */
 	cli
+
+    /* Restore original IRQ */
+    call   irq_uninstall
+
 	/* New stack */
 	mov		$0x6F2C, %esp
 
@@ -42,12 +46,16 @@ chainload_asm_16_real:
 	mov		%ax, %ss
 
 	/* Setup idt */
-	lidt	real_idt
+	lidt   real_idt
+
+	/* Re-enable interrupts */
+	sti
+
+	/* Put into dl the bootDrive */
+	mov    drive_number, %dl
 
 	/* Farewell */
-	mov		drive_number, %dl
-	sti
-	ljmp	$0x00,$0x7C00
+	ljmp   $0x00,$0x7C00
 
 drive_number:
 .byte	0x00

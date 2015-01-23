@@ -13,7 +13,7 @@
 /* Start */
 start:
 	cli
-	mov		%bx, bootDrive
+	mov		%dl, bootDrive
 
 	/* Set stack
 	 * There should be 30KiB available here
@@ -157,10 +157,10 @@ gdtToc:
 	.int	gdtTable		/* Base of GDT */
 
 /* Struct passed to main */
-.code16
+.code32
 bootInformation:
 bootDrive:
-	.word	0
+	.byte	0
 memoryMapInfo:
 memoryMapNbEntries:
 	.word	0

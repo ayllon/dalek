@@ -102,8 +102,8 @@ _stage2_read:
 	jb		_stage2_read
 
 	/* Jump there */
-	xor		%bx, %bx
-	mov		bootDrive, %bl	/* Boot drive */
+	xor		%dl, %dl
+	mov		bootDrive, %dl	/* Boot drive */
 	ljmp	$0x0000,$0x8000
 
 	/* Halt */

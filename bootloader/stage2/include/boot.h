@@ -27,7 +27,7 @@ typedef struct
 
 typedef struct
 {
-    uint16_t boot_drive;
+    uint8_t boot_drive;
     uint16_t smap_size;
     SMAPEntry smap_entries[];
 } __attribute__((packed)) BootInformation;

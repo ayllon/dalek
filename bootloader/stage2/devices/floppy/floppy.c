@@ -218,14 +218,14 @@ void fd_init(void)
  */
 void fd_deinit(void)
 {
+    // Turn motors off
+    outportb(FD_PRIMARY_BASE, 0x0c);
+    // Give time to motors to turn off
+    sleep(500);
     // Set configuration to the default
     fd_configure(FD_PRIMARY_BASE, 0, 0, 1, 1, 0);
     // Unblock
     fd_send_byte(FD_PRIMARY_BASE, FD_UNLOCK);
-    // Reset
-    fd_reset(FD_PRIMARY_BASE);
-    // Give time to motors to turn off
-    sleep(500);
 }
 
 REGISTER_IO(fd_init, fd_deinit);
