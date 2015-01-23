@@ -14,9 +14,11 @@ extern IODevice* stdin;
 extern IODevice* stdout;
 
 /* Log level */
-#define LOG_INFO    0
-#define LOG_WARN    1
-#define LOG_ERROR   2
+#define LOG_DEBUG    0
+#define LOG_INFO     1
+#define LOG_WARN     2
+#define LOG_ERROR    3
+#define LOG_CRITICAL 4
 
 /**
  * Gets an ascii character from keyboard

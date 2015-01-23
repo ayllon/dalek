@@ -6,6 +6,7 @@ file (GLOB stage2_src  "*.S" "*.c")
 file (GLOB keymaps_src "keymaps/*.c")
 file (GLOB cmds_src    "commands/*.c" "commands/*.S")
 file (GLOB dev_src     "devices/*/*.c")
+file (GLOB fs_src     "filesystems/*/*.c")
 
 add_definitions (
     "-ffreestanding -fstack-protector -fno-builtin -nostdinc -Wall -m32"
@@ -16,6 +17,7 @@ add_executable (stage2.elf
     ${keymaps_src}
     ${cmds_src}
     ${dev_src}
+    ${fs_src}
 )
 set_target_properties (stage2.elf
     PROPERTIES

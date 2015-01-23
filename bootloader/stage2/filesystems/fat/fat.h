@@ -9,7 +9,7 @@
 
 // 0x28 is also a valid signature with a different EBPB layout,
 // but we just ignore it
-#define FAT1x_SIGNATURE 0x29
+#define FAT_SIGNATURE 0x29
 
 typedef struct Fat_1x_EBPB {
     uint8_t  drive_number; // Drive number
@@ -19,7 +19,7 @@ typedef struct Fat_1x_EBPB {
     uint8_t  label[11]; // Volume label
     uint8_t  system_id[8]; // System identifier string
     uint8_t boot_code[448]; // Boot code
-} Fat_1x_EBPB;
+} __attribute__((packed)) Fat_1x_EBPB;
 
 typedef struct Fat_32_EBPB {
     uint32_t sec_per_fat; // Sectors per FAT
@@ -36,12 +36,12 @@ typedef struct Fat_32_EBPB {
     uint8_t  label[11]; // Volume label
     uint8_t system_id[8]; // System identifier string
     uint8_t boot_code[420]; // Boot code
-} Fat_32_EBPB;
+} __attribute__((packed)) Fat_32_EBPB;
 
-typedef struct FatBPB {
-    uint8_t  jmp; // jmp short XX nop
+typedef struct FatBS {
+    uint8_t  jmp[3]; // jmp short XX nop
     uint8_t  oem[8]; // OEM identifier
-    uint16_t bypes_per_sec; // Bytes per sector
+    uint16_t bytes_per_sec; // Bytes per sector
     uint8_t  sec_per_cluster; // Sectors per cluster
     uint16_t n_reserved_sec; // Number of reserved sectors
     uint8_t  n_fat; // Number of FAT
@@ -60,7 +60,7 @@ typedef struct FatBPB {
     };
 
     uint8_t bootable[2]; // Bootable signature (0xAA55)
-} __attribute__((packed)) FatBPB;
+} __attribute__((packed)) FatBS;
 
 
 #endif /* __FAT_H__ */

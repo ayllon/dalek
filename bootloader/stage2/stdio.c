@@ -98,9 +98,13 @@ int vprintf(const char *s, va_list args)
         else {
             unsigned lcount = 0;
             char pad = 0;
+            char limit = 0;
             int w = 0;
 format:
             switch (*(++s)) {
+            case '.':
+                limit = 1;
+                goto format;
             case '0':
                 if (!pad) {
                     pad = '0';
@@ -151,7 +155,9 @@ format:
             case 's':
                 p = va_arg(args, char*);
                 string:
-                    if (io_write(stdout, p, strlen(p)) < 0)
+                    if (!limit)
+                        w = strlen(p);
+                    if (io_write(stdout, p, w) < 0)
                         return -1;
                 break;
             default:
@@ -176,6 +182,9 @@ int log(int level, const char* func, const char* msg, ...)
             break;
         case LOG_WARN:
             printf("\x1b[33m");
+            break;
+        case LOG_INFO:
+            printf("\x1b[36m");
             break;
         default:
             printf("\x1b[37m");

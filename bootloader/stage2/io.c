@@ -33,6 +33,7 @@ IODevice *io_register_device(const char *name, const char *description,
     node->next = NULL;
     // New device
     node->device = (IODevice*) malloc(sizeof(IODevice));
+    memset(node->device, 0x00, sizeof(IODevice));
     node->device->data = data;
     strlcpy(node->device->name, name, sizeof(node->device->name));
     strlcpy(node->device->description, description, sizeof(node->device->description));
