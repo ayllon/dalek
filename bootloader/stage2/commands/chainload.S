@@ -55,6 +55,10 @@ chainload_asm_16_real:
 	mov		$0x02, %al
 	int		$0x10
 
+	/* Reset flags */
+	pushw	original_processor_flags
+	popf
+
 	/* Farewell */
 	mov		drive_number, %dl
 	sti

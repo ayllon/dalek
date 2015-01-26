@@ -14,6 +14,7 @@ int errno = 0;
 
 void main(BootInformation* boot_info)
 {
+    asm("cli");
     // Memory
     mm_initialize(boot_info);
     // IDT and IRQ

@@ -3,7 +3,7 @@ OUTPUT_ARCH(i386)
 ENTRY(start)
 SECTIONS
 {
-  . = 0x8000;
+  . = 0x7e00;
   .text : { */stage2.S.o(.text) *(.text) }
   .data : { *(.data) }
   .rodata : { *(.rodata) }
