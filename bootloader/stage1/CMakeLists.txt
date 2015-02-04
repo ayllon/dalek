@@ -11,7 +11,7 @@ set_target_properties (stage1-fat1x.elf
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
-add_custom_target (stage1-fat1x.bin
+add_custom_target (stage1-fat1x.bin ALL
     COMMAND "${OBJCOPY}" -S -O binary "${CMAKE_BINARY_DIR}/stage1-fat1x.elf" "${CMAKE_BINARY_DIR}/stage1-fat1x.bin"
     COMMAND "${OBJCOPY}" --only-keep-debug "${CMAKE_BINARY_DIR}/stage1-fat1x.elf" "${CMAKE_BINARY_DIR}/stage1-fat1x.sym"
     DEPENDS stage1-fat1x.elf

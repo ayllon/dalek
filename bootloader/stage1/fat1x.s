@@ -37,12 +37,13 @@ bsSerialNumber:			.word	0xa0a1, 0xa2a3
 bsVolumeLabel:			.byte	'B','O','O','T',' ','F','L','O','P','P','Y'
 bsFileSystem:			.byte	'F','A','T','1','2',' ',' ',' '
 
-/* Reset segment registers */
+/* Reset segment registers and stack */
 loader:
 	xorw	%ax, %ax
 	movw	%ax, %ss
 	movw	%ax, %ds
 	movw	%ax, %es
+	movw	$0x7bff, %sp
 	ljmp	$0x00,$loader2
 
 /* print function

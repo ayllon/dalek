@@ -48,3 +48,4 @@ void main(BootInformation* boot_info)
     while (1)
         asm("hlt");
 }
+

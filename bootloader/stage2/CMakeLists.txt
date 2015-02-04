@@ -28,7 +28,7 @@ set_source_files_properties(
 )
 
 # Extract raw binary and debug symbols
-add_custom_target (stage2.bin
+add_custom_target (stage2.bin ALL
     COMMAND "${OBJCOPY}" -S -O binary "stage2.elf" "${CMAKE_BINARY_DIR}/stage2.bin"
     COMMAND "${OBJCOPY}" --only-keep-debug "stage2.elf" "${CMAKE_BINARY_DIR}/stage2.sym"
     DEPENDS stage2.elf
