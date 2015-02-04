@@ -56,12 +56,9 @@ chainload_asm_16_real:
 	int		$0x10
 
 	/* Reset flags */
+	mov		drive_number, %dl
 	pushw	original_processor_flags
 	popf
-
-	/* Farewell */
-	mov		drive_number, %dl
-	sti
 
 	/* Farewell */
 	ljmp   $0x00,$0x7C00
