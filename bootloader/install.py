@@ -101,7 +101,6 @@ class BaseInstaller(object):
         Install the stage1 into the disk image
         """
         log.info('Installing stage1')
-
         # Get the sectors where the stage2 is
         sector_ranges = self.get_sector_ranges(self.inner_stage2)
 
@@ -235,11 +234,60 @@ class FAT1xInstaller(BaseInstaller):
         disk_fd.seek(0)
         disk_fd.write(stage1)
         disk_fd.close()
+
+
+class FAT32Installer(FAT1xInstaller):
+    """
+    FAT32 implementation
+    """
+    
+    BootSector = namedtuple('FATBootSector',
+       ['jump', 'oem', 'bytes_per_sector', 'sectors_per_cluster', 'reserved_sectors',
+        'number_of_fat', 'root_entries', 'total_sectors', 'media',
+        'unused', 'sectors_per_track', 'heads_per_cylinder', 'hidden_sectors',
+        'total_sectors_big', 'sectors_per_fat']
+    )
+
+    fs_suffix = 'fat32'
+    
+    def _get_fat_params(self):
+        """
+        Read the first bytes with the relevant FAT information
+        """
+        fd = open(self.disk, 'r')
+        boot_sector = fd.read(40)
+        unnamed_info = struct.unpack('<3s8sHBHBHHBHHHIII', boot_sector)
+        named_info = FAT32Installer.BootSector._make(unnamed_info)
+        log.debug(str(named_info))
+        fd.close()
+        return named_info
+
+    def introduce_payload(self, payload):
+        """
+        Introduce the sector list at the end
+        """
+        # Read first block from the disk
+        disk_fd = open(self.disk, 'r+')
+        disk_bs = disk_fd.read(512)
         
+        # Introduce the code and payload at the end
+        # Respect FS information and terminating 0xAA55!
+        stage1_fd = open(self.stage1, 'r')
+        stage1 = stage1_fd.read(512)
+        stage1_fd.close()
+        
+        payload_size = len(payload)
+        stage1 = disk_bs[0: 90] + stage1[90:510 - payload_size] + payload + stage1[510:512]
+        
+        # And write boot sector
+        disk_fd.seek(0)
+        disk_fd.write(stage1)
+        disk_fd.close()
 
 # Dictionary of known implementations
 __fs_implementations__ = dict(
-    fat1x=FAT1xInstaller
+    fat1x=FAT1xInstaller,
+    fat32=FAT32Installer
 )
 
 
