@@ -10,7 +10,7 @@ if (APPLE)
 else (APPLE)
     add_custom_command (OUTPUT "${FLOPPY_IMAGE}"
         COMMAND dd if="/dev/zero" of="${FLOPPY_IMAGE}" bs=1024 count=1440
-        COMMAND mkfs.vfat "${FLOPPY_IMAGE}" -n "DALEK"
+        COMMAND /sbin/mkfs.vfat "${FLOPPY_IMAGE}" -n "DALEK"
     )
 endif (APPLE)
 
