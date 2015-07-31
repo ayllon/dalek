@@ -4,7 +4,7 @@ include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 file (GLOB stage2_src  "*.S" "*.c")
 file (GLOB keymaps_src "keymaps/*.c")
-file (GLOB cmds_src    "commands/*.c" "commands/*.S")
+file (GLOB cmds_src    "commands/*.c" "commands/*.S" "commands/*.rs")
 file (GLOB dev_src     "devices/*/*.c")
 file (GLOB fs_src     "filesystems/*/*.c")
 
