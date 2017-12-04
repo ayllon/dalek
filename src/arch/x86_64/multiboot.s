@@ -1,5 +1,6 @@
 // Multiboot header
 .section .multiboot
+.align 4
 multiboot_header:
     // Magic number
     .long   0xe85250d6

@@ -17,6 +17,10 @@ start:
 	call    check_cpuid
 	call    check_longmode
 
+	/* Go for long mode */
+	call    setup_page_tables
+	call    enable_paging
+
     movl    $0x2f4b2f4f, 0xb8000
     hlt
 
@@ -96,3 +100,67 @@ error:
     movw    $0x4f00, 0xb800a
     movb    %al, 0xb800a
     hlt
+
+/* Setup page tables */
+setup_page_tables:
+    // Map first P4 entry to P3 table
+    mov     $p3_table, %eax
+    // present + writable
+    or      $0b11, %eax
+    mov     %eax, p4_table
+
+    // map first P3 entry to P2 table
+    mov     $p2_table, %eax
+    // present + writable
+    or      $0b11, %eax
+    mov     %eax, p3_table
+
+    // Map each P2 entry to a huge 2MiB page
+    mov     $0x0, %ecx
+
+.map_p2_table:
+    // map ecx-th P2 entry to a huge page that starts at address 2MiB*ecx
+    mov     $0x200000, %eax
+    mul     %ecx
+    // present + writable + huge
+    or      $0b10000011, %eax
+    mov     %eax, p2_table(,%ecx, 8)
+
+    inc     %ecx
+    cmp     $512, %ecx
+    jne     .map_p2_table
+    ret
+
+/* Enable pages */
+enable_paging:
+    mov     $p4_table, %eax
+    mov     %eax, %cr3
+
+    // Enable PAE
+    mov     %cr4, %eax
+    or      $(1 << 5), %eax
+    mov     %eax, %cr4
+
+    // Set long mode bit
+    mov     $0xC0000080, %ecx
+    rdmsr
+    or      $(1 << 8), %eax
+    wrmsr
+
+    // Enable paging
+    mov     %cr0, %eax
+    or      $(1 << 31), %eax
+    mov     %eax, %cr0
+
+    ret
+
+.bss
+.align 4096
+p4_table:
+    .skip 4096
+p3_table:
+    .skip 4096
+p2_table:
+    .skip 4096
+stack_bottom:
+    .skip 64
