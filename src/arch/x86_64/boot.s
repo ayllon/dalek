@@ -2,6 +2,7 @@
 .code32
 
 .global start
+.extern long_mode_start
 
 /* Entry point */
 start:
@@ -21,8 +22,9 @@ start:
 	call    setup_page_tables
 	call    enable_paging
 
-    movl    $0x2f4b2f4f, 0xb8000
-    hlt
+	/* Load GDT */
+	lgdt    gdt64.pointer
+	ljmp    $0x08,$long_mode_start
 
 /* Verify that EAX contains the magic value that a multiboot
    loader should have left */
@@ -164,3 +166,38 @@ p2_table:
     .skip 4096
 stack_bottom:
     .skip 64
+
+.section .rodata
+/**
+Access Byte
+===========
+Present | Privilege (2) | 1 | Executable | Direction/Conforming | RW | Accessed
+	- Present: 1 for valid selector
+	- Privilege: Ring level
+	- Executable: 1 for code
+	- Direction/Conforming
+		* For data
+			+ 0 segment grows up, 1 down
+		* For code
+			+ 0 can only be executed from ring in Privilege
+			+ 1 can be called from equal or lower privilege
+	- RW
+		* For data, 1 to allow write
+		* For code, 1 to allow read
+	- Accessed
+		* Set to 1 by the CPU when accessed
+
+Flags
+=====
+Granularity | Size | 0 | 0
+	- Granularity: 0 for byte, 1 for page (4 KiB)
+	- Size: 0 for 16 bits protected mode, 32 for 32 bits protected mode
+*/
+gdt64:
+    // Null descriptor
+    .quad 0x0
+    // Code segment
+    .quad (1<<43) | (1<<44) | (1<<47) | (1<<53)
+gdt64.pointer:
+    .word   gdt64.pointer - gdt64 - 1
+    .quad   gdt64

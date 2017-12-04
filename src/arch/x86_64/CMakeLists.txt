@@ -4,11 +4,12 @@ add_definitions (
     "-ffreestanding -fno-stack-protector -fno-builtin -nostdinc"
 )
 set (CMAKE_EXE_LINKER_FLAGS
-    "-n -nostartfiles -nodefaultlibs -nostdlib"
+    "-n -nostartfiles -nodefaultlibs -nostdlib -no-pie"
 )
 
 add_executable (kernel.elf
     boot.s
+    long_mode.s
     multiboot.s
 )
 
