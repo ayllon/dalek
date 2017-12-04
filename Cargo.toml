@@ -1,0 +1,12 @@
+[package]
+name = "rusty_dalek"
+version = "0.0.0"
+authors = ["Alejandro Alvarez Ayllon <alejandro.alvarez.ayllon@cern.ch>"]
+publish = false
+build = "build.rs"
+
+[build-dependencies]
+glob = "0.2"
+
+[dependencies]
+rlibc = "1.0"

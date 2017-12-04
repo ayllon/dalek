@@ -164,8 +164,6 @@ p3_table:
     .skip 4096
 p2_table:
     .skip 4096
-stack_bottom:
-    .skip 64
 
 .section .rodata
 /**
