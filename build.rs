@@ -28,7 +28,7 @@ fn main() {
             .args(&["-c", &asm_path])
             .status().unwrap();
 
-        println!("cargo:rerun-if-changed={}", asm.to_str().unwrap());
+        //println!("cargo:rerun-if-changed={}", asm.to_str().unwrap());
     }
 
     Command::new("ar")

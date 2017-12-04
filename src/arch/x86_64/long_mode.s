@@ -2,6 +2,7 @@
 .code64
 
 .global long_mode_start
+.extern rust_main
 
 long_mode_start:
     // Reload data segments
@@ -12,7 +13,8 @@ long_mode_start:
     mov     %ax, %fs
     mov     %ax, %gs
 
+    // Call rust
+    call    rust_main
+
     // We are 64 bits!
-    mov $0x2f592f412f4b2f4f, %rax
-    mov %rax, 0xb8000
     hlt
