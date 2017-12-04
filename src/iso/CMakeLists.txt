@@ -7,3 +7,9 @@ add_custom_target (dalek.iso ALL
     COMMAND grub-mkrescue -o "${CMAKE_BINARY_DIR}/dalek.iso" "${CMAKE_CURRENT_BINARY_DIR}/isofiles"
     DEPENDS kernel.elf
 )
+
+
+add_custom_target (boot
+    COMMAND qemu-system-x86_64 -cdrom "${CMAKE_BINARY_DIR}/dalek.iso"
+    DEPENDS dalek.iso
+)
