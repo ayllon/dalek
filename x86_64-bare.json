@@ -22,11 +22,6 @@
       "-no-pie"
     ]
   },
-  "post-link-args": {
-    "gcc": [
-      "-Wl,--no-gc-sections"
-    ]
-  },
   "disable-redzone": true,
   "eliminate-frame-pointer": false
 }
