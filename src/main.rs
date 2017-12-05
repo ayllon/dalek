@@ -7,11 +7,25 @@ extern crate rlibc;
 
 #[no_mangle]
 pub extern fn rust_main() {
-    unsafe {
-        asm!("mov $$0x2f592f412f4b2f4f, %rax");
-        asm!("mov %rax, 0xb8000");
+    let hello = b"Hello there!";
+    let color = 0x1f;
+
+    let mut hello_colored = [color; 24];
+    for (i, char) in hello.into_iter().enumerate() {
+        hello_colored[i * 2] = *char;
     }
+
+    let buffer_ptr = (0xb8000 + 1988) as *mut _;
+    unsafe {
+        *buffer_ptr = hello_colored;
+    }
+
+    loop {}
 }
 
-#[lang = "eh_personality"] extern fn eh_personality() {}
-#[lang = "panic_fmt"] #[no_mangle] pub extern fn panic_fmt() -> ! {loop{}}
+#[lang = "eh_personality"]
+extern fn eh_personality() {}
+
+#[lang = "panic_fmt"]
+#[no_mangle]
+pub extern fn panic_fmt() -> ! { loop {} }
