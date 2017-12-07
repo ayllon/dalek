@@ -1,25 +1,24 @@
-#![feature(lang_items)]
 #![feature(asm)]
+#![feature(const_fn)]
+#![feature(lang_items)]
+#![feature(unique)]
+
 #![no_std]
 #![no_main]
 
 extern crate rlibc;
+extern crate spin;
+extern crate volatile;
+
+mod vga_buffer;
 
 #[no_mangle]
 pub extern fn rust_main() {
-    let hello = b"Hello there!";
-    let color = 0x1f;
-
-    let mut hello_colored = [color; 24];
-    for (i, char) in hello.into_iter().enumerate() {
-        hello_colored[i * 2] = *char;
-    }
-
-    let buffer_ptr = (0xb8000 + 1988) as *mut _;
-    unsafe {
-        *buffer_ptr = hello_colored;
-    }
-
+    use core::fmt::Write;
+    vga_buffer::WRITER.lock().clear();
+    vga_buffer::WRITER.lock().write_str("Hello!");
+    write!(vga_buffer::WRITER.lock(), ", bididi {}\n", 42);
+    write!(vga_buffer::WRITER.lock(), "Petete");
     loop {}
 }
 
