@@ -11,24 +11,21 @@ extern crate spin;
 extern crate volatile;
 
 mod bootinfo;
+#[macro_use]
 mod vga_buffer;
-
-use core::fmt::Write;
 
 #[no_mangle]
 pub extern fn rust_main(multiboot_address: usize) {
     vga_buffer::WRITER.lock().clear();
 
     let boot_info = bootinfo::load(multiboot_address);
-    write!(vga_buffer::WRITER.lock(),
-           "Multiboot address: 0x{:x}, size {} bytes\n", multiboot_address, boot_info.total_size
-    );
+    println!("Multiboot address: 0x{:x}, size {} bytes", multiboot_address, boot_info.total_size);
 
     for tag in boot_info.tags() {
-        write!(vga_buffer::WRITER.lock(), "{:?}\n", tag);
+        println!("{:?}", tag);
     }
 
-    loop {}
+    panic!();
 }
 
 #[lang = "eh_personality"]
@@ -36,4 +33,8 @@ extern fn eh_personality() {}
 
 #[lang = "panic_fmt"]
 #[no_mangle]
-pub extern fn panic_fmt() -> ! { loop {} }
+pub extern fn panic_fmt(fmt: core::fmt::Arguments, file: &'static str, line: u32) -> ! {
+    println!("PANIC! {}:{}", file, line);
+    println!("  {}", fmt);
+    loop {}
+}
