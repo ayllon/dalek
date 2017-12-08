@@ -19,7 +19,12 @@ pub extern fn rust_main(multiboot_address: usize) {
     vga_buffer::WRITER.lock().clear();
 
     let boot_info = bootinfo::load(multiboot_address);
+    let loader = bootinfo::tags::TagBootLoaderName::from(
+        boot_info.get_tag(bootinfo::tags::Type::BootLoaderName)
+    );
+
     println!("Multiboot address: 0x{:x}, size {} bytes", multiboot_address, boot_info.total_size);
+    loader.map(|loader| println!("Booted by {}", loader.name()));
 
     for tag in boot_info.tags() {
         println!("{:?}", tag);
