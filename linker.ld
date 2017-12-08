@@ -3,14 +3,22 @@ ENTRY(start)
 SECTIONS {
     . = 1M;
 
-    .boot BLOCK(4K) : ALIGN(4K)
+    .text :
     {
         /* Multiboot header at the beginning */
         KEEP(*(.multiboot))
+        *(.text .text.*)
     }
 
-    .text :
-    {
-        *(.text)
+    .rodata : {
+        *(.rodata .rodata.*)
+    }
+
+    .data.rel.ro : {
+        *(.data.rel.ro.local*) *(.data.rel.ro .data.rel.ro.*)
+    }
+
+    .data : {
+        *(.data.* .data)
     }
 }
