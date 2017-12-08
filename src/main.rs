@@ -10,15 +10,26 @@ extern crate rlibc;
 extern crate spin;
 extern crate volatile;
 
+mod multiboot;
 mod vga_buffer;
 
+use core::fmt::Write;
+
 #[no_mangle]
-pub extern fn rust_main() {
-    use core::fmt::Write;
+pub extern fn rust_main(multiboot_address: usize) {
     vga_buffer::WRITER.lock().clear();
-    vga_buffer::WRITER.lock().write_str("Hello!");
-    write!(vga_buffer::WRITER.lock(), ", bididi {}\n", 42);
-    write!(vga_buffer::WRITER.lock(), "Petete");
+
+    let boot_info = multiboot::load(multiboot_address);
+    write!(vga_buffer::WRITER.lock(),
+           "Multiboot address: 0x{:x}, size {} bytes\n", multiboot_address, boot_info.total_size
+    );
+
+    let loader = boot_info.get_boot_loader_name();
+    match loader {
+        Some(tag) => write!(vga_buffer::WRITER.lock(), "Loader: {}\n", tag.name()),
+        _ => write!(vga_buffer::WRITER.lock(), "Unknown loader\n"),
+    };
+
     loop {}
 }
 

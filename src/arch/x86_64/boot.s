@@ -13,6 +13,9 @@ start:
 	mov		$0x00007BFF, %esp
 	mov		%esp, %ebp
 
+	/* Save multiboot pointer in EDI, so Rust's entry point gets it */
+	mov     %ebx, %edi
+
 	/* Do some cross checks */
 	call    check_multiboot
 	call    check_cpuid
