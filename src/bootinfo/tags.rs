@@ -15,6 +15,7 @@ pub enum Type {
     ElfSymbols = 9,
     APMTable = 10,
     RSDP = 14,
+    RSDPv2 = 15,
     ImageLoadBaseAddress = 21,
     // Needed to make sure the compiler does not optimize away the "default" match
     // for unknown values, and crash when there is one
@@ -37,6 +38,7 @@ impl fmt::Debug for Type {
             Type::ElfSymbols => f.write_str("ElfSymbols"),
             Type::APMTable => f.write_str("APMTable"),
             Type::RSDP => f.write_str("RSDP"),
+            Type::RSDPv2 => f.write_str("RSDPv2"),
             Type::ImageLoadBaseAddress => f.write_str("ImageLoadBaseAddress"),
             t => write!(f,"Unknown tag {}", t as u32),
         }
