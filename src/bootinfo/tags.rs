@@ -1,3 +1,5 @@
+use core::{fmt, mem, str, slice};
+
 /// Known tag types
 #[allow(dead_code)]
 #[repr(u32)]
@@ -22,7 +24,6 @@ pub enum Type {
     Barrier,
 }
 
-use core::fmt;
 impl fmt::Debug for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -46,7 +47,7 @@ impl fmt::Debug for Type {
 }
 
 /// All tags contain these fields
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[repr(C)]
 pub struct Tag {
     /// Tag type
@@ -95,9 +96,31 @@ impl Iterator for TagIter {
     }
 }
 
-/// This tags contains the Boot loader name
-#[derive(Debug, Clone, Copy)]
-#[repr(packed)]
+/// This tag contains the command line passed by the boot loader
+#[derive(Debug)]
+#[repr(C)]
+pub struct CommandLine {
+    tag: Tag,
+    /// First character of the command line
+    pub string: u8
+}
+
+impl CommandLine {
+    implement_cast_from_tag!();
+
+    pub fn cmd(&self) -> &str {
+        let strlen = self.tag.size as usize - mem::size_of::<Tag>();
+        unsafe {
+            str::from_utf8_unchecked(
+                slice::from_raw_parts((&self.string) as *const u8, strlen)
+            )
+        }
+    }
+}
+
+/// This tag contains the Boot loader name
+#[derive(Debug)]
+#[repr(C)]
 pub struct BootLoaderName {
     tag: Tag,
     /// First character of the string containing the name
@@ -109,7 +132,6 @@ impl BootLoaderName {
 
     /// Returns a slice containing the full boot loader name
     pub fn name(&self) -> &str {
-        use core::{mem, str, slice};
         let strlen = self.tag.size as usize - mem::size_of::<Tag>();
         unsafe {
             str::from_utf8_unchecked(
@@ -119,8 +141,9 @@ impl BootLoaderName {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-#[repr(packed)]
+/// This tag contains the physical address where the image has been loaded
+#[derive(Debug)]
+#[repr(C)]
 pub struct ImageLoadBaseAddress {
     tag: Tag,
     /// Base physical address

@@ -27,6 +27,9 @@ pub extern fn rust_main(multiboot_address: usize) {
 
     println!("Multiboot address: 0x{:x}, size {} bytes", multiboot_address, boot_info.total_size);
     loader.map(|loader| println!("Booted by {}", loader.name()));
+    boot_info.get_tag(bootinfo::tags::Type::CommandLine)
+        .map(bootinfo::tags::CommandLine::cast)
+        .map(|cmd| println!("Command line: {}", cmd.cmd()));
 
     for tag in boot_info.tags() {
         println!("{:?}", tag);
