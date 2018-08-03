@@ -14,8 +14,11 @@ pub enum Type {
     FrameBufferInfo = 8,
     ElfSymbols = 9,
     APMTable = 10,
-    // Does a a shield to prevent crashes when doing a match on this enum
-    FirstUnknown = 11,
+    RSDP = 14,
+    ImageLoadBaseAddress = 21,
+    // Needed to make sure the compiler does not optimize away the "default" match
+    // for unknown values, and crash when there is one
+    Barrier,
 }
 
 use core::fmt;
@@ -33,6 +36,8 @@ impl fmt::Debug for Type {
             Type::FrameBufferInfo => f.write_str("FrameBufferInfo"),
             Type::ElfSymbols => f.write_str("ElfSymbols"),
             Type::APMTable => f.write_str("APMTable"),
+            Type::RSDP => f.write_str("RSDP"),
+            Type::ImageLoadBaseAddress => f.write_str("ImageLoadBaseAddress"),
             t => write!(f,"Unknown tag {}", t as u32),
         }
     }
