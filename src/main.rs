@@ -1,7 +1,9 @@
 #![feature(asm)]
 #![feature(const_fn)]
 #![feature(lang_items)]
-#![feature(unique)]
+#![feature(panic_implementation)]
+#![feature(panic_info_message)]
+#![feature(ptr_internals)]
 
 #![no_std]
 #![no_main]
@@ -33,13 +35,23 @@ pub extern fn rust_main(multiboot_address: usize) {
     panic!();
 }
 
-#[lang = "eh_personality"]
-extern fn eh_personality() {}
 
-#[lang = "panic_fmt"]
+#[panic_implementation]
 #[no_mangle]
-pub extern fn panic_fmt(fmt: core::fmt::Arguments, file: &'static str, line: u32) -> ! {
-    println!("PANIC! {}:{}", file, line);
-    println!("  {}", fmt);
+pub extern fn panic_fmt(info: &core::panic::PanicInfo) -> ! {
+    match info.location() {
+        Some(l) =>
+            println!("PANIC! {}:{}", l.file(), l.line()),
+        None =>
+            println!("PANIC! Unknown location"),
+    }
+
+    match info.message() {
+        Some(f) =>
+            println!("  {}", f),
+        None =>
+            println!("No message??")
+    }
+
     loop {}
 }
