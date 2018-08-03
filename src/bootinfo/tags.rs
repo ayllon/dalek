@@ -4,7 +4,7 @@ use core::{fmt, mem, str, slice};
 #[allow(dead_code)]
 #[repr(u32)]
 #[derive(Copy, Clone, PartialEq)]
-pub enum Type {
+pub enum TypeId {
     EndTag = 0,
     CommandLine = 1,
     BootLoaderName = 2,
@@ -24,23 +24,23 @@ pub enum Type {
     Barrier,
 }
 
-impl fmt::Debug for Type {
+impl fmt::Debug for TypeId {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Type::EndTag => f.write_str("EndTag"),
-            Type::CommandLine => f.write_str("CommandLine"),
-            Type::BootLoaderName => f.write_str("BootLoaderName"),
-            Type::Modules => f.write_str("Modules"),
-            Type::MemoryInformation => f.write_str("MemoryInformation"),
-            Type::BiosBootDevice => f.write_str("BiosBootDevice"),
-            Type::MemoryMap => f.write_str("MemoryMap"),
-            Type::VBEInfo => f.write_str("VBEInfo"),
-            Type::FrameBufferInfo => f.write_str("FrameBufferInfo"),
-            Type::ElfSymbols => f.write_str("ElfSymbols"),
-            Type::APMTable => f.write_str("APMTable"),
-            Type::RSDP => f.write_str("RSDP"),
-            Type::RSDPv2 => f.write_str("RSDPv2"),
-            Type::ImageLoadBaseAddress => f.write_str("ImageLoadBaseAddress"),
+            TypeId::EndTag => f.write_str("EndTag"),
+            TypeId::CommandLine => f.write_str("CommandLine"),
+            TypeId::BootLoaderName => f.write_str("BootLoaderName"),
+            TypeId::Modules => f.write_str("Modules"),
+            TypeId::MemoryInformation => f.write_str("MemoryInformation"),
+            TypeId::BiosBootDevice => f.write_str("BiosBootDevice"),
+            TypeId::MemoryMap => f.write_str("MemoryMap"),
+            TypeId::VBEInfo => f.write_str("VBEInfo"),
+            TypeId::FrameBufferInfo => f.write_str("FrameBufferInfo"),
+            TypeId::ElfSymbols => f.write_str("ElfSymbols"),
+            TypeId::APMTable => f.write_str("APMTable"),
+            TypeId::RSDP => f.write_str("RSDP"),
+            TypeId::RSDPv2 => f.write_str("RSDPv2"),
+            TypeId::ImageLoadBaseAddress => f.write_str("ImageLoadBaseAddress"),
             t => write!(f,"Unknown tag {}", t as u32),
         }
     }
@@ -48,27 +48,21 @@ impl fmt::Debug for Type {
 
 /// All tags contain these fields
 #[derive(Debug)]
-#[repr(packed)]
+#[repr(C)]
 pub struct Tag {
     /// Tag type
-    pub typ: Type,
+    pub typ: TypeId,
     /// Size of the full tag, including these two fields
     pub size: u32,
 }
 
-
-/// Generic implementation to convert to a known Tag type.
-/// It just casts the pointer.
-pub trait SpecificTag<T> {
-    fn cast(original: &'static Tag) -> &'static T;
+pub trait TagTrait {
+    const TYPE_ID: TypeId;
 }
 
-macro_rules! implement_cast_from_tag {
-    () => {
-        pub fn cast(original: &'static Tag) -> &'static Self {
-            unsafe { &*{ original as *const Tag as *const Self }}
-        }
-    };
+/// Cast pointer from a generic Tag to a specific one
+pub fn cast_tag<T>(original: &'static Tag) -> &'static T {
+    unsafe { &*{ original as *const Tag as *const T }}
 }
 
 
@@ -84,7 +78,7 @@ impl Iterator for TagIter {
     /// Gives next tag, None if reached the end of list
     fn next(&mut self) -> Option<&'static Tag> {
         match unsafe { &*self.current } {
-            &Tag { typ: Type::EndTag, size: 8 } => None,
+            &Tag { typ: TypeId::EndTag, size: 8 } => None,
             tag => {
                 let mut next_addr = (self.current as usize) + tag.size as usize;
                 next_addr = ((next_addr - 1) & !0x7) + 0x8; // align
@@ -98,7 +92,7 @@ impl Iterator for TagIter {
 
 /// This tag contains the command line passed by the boot loader
 #[derive(Debug)]
-#[repr(packed)]
+#[repr(C)]
 pub struct CommandLine {
     tag: Tag,
     /// First character of the command line
@@ -106,8 +100,6 @@ pub struct CommandLine {
 }
 
 impl CommandLine {
-    implement_cast_from_tag!();
-
     pub fn cmd(&self) -> &str {
         let strlen = self.tag.size as usize - mem::size_of::<Tag>();
         unsafe {
@@ -118,21 +110,25 @@ impl CommandLine {
     }
 }
 
+impl TagTrait for CommandLine {
+    const TYPE_ID: TypeId = TypeId::CommandLine;
+}
+
 /// This tag contains the boot device used by the BIOS
 #[derive(Debug)]
-#[repr(packed)]
-pub struct BiosDevice {
+#[repr(C)]
+pub struct BiosBootDevice {
     tag: Tag,
     pub biosdev: u32,
     pub partition: u32,
     pub sub_partition: u32
 }
 
-impl BiosDevice {
-    implement_cast_from_tag!();
+impl TagTrait for BiosBootDevice {
+    const TYPE_ID: TypeId = TypeId::BiosBootDevice;
 }
 
-impl fmt::Display for BiosDevice {
+impl fmt::Display for BiosBootDevice {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "0x{:X} 0x{:X} / 0x{:X}", self.biosdev, self.partition, self.sub_partition)
     }
@@ -140,16 +136,18 @@ impl fmt::Display for BiosDevice {
 
 /// This tag contains the Boot loader name
 #[derive(Debug)]
-#[repr(packed)]
+#[repr(C)]
 pub struct BootLoaderName {
     tag: Tag,
     /// First character of the string containing the name
     pub string: u8
 }
 
-impl BootLoaderName {
-    implement_cast_from_tag!();
+impl TagTrait for BootLoaderName {
+    const TYPE_ID: TypeId = TypeId::BootLoaderName;
+}
 
+impl BootLoaderName {
     /// Returns a slice containing the full boot loader name
     pub fn name(&self) -> &str {
         let strlen = self.tag.size as usize - mem::size_of::<Tag>();
@@ -163,13 +161,13 @@ impl BootLoaderName {
 
 /// This tag contains the physical address where the image has been loaded
 #[derive(Debug)]
-#[repr(packed)]
+#[repr(C)]
 pub struct ImageLoadBaseAddress {
     tag: Tag,
     /// Base physical address
     pub load_base_address: u32,
 }
 
-impl ImageLoadBaseAddress {
-    implement_cast_from_tag!();
+impl TagTrait for ImageLoadBaseAddress {
+    const TYPE_ID: TypeId = TypeId::ImageLoadBaseAddress;
 }

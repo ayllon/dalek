@@ -20,8 +20,10 @@ pub fn load(address: usize) -> &'static BootInfo {
 
 impl BootInfo {
     /// Returns the requested tag, or None if not found
-    pub fn get_tag(&self, typ: tags::Type) -> Option<&'static tags::Tag> {
-        self.tags().find(|tag| tag.typ == typ)
+    pub fn get_tag<T: tags::TagTrait>(&self) -> Option<&'static T> {
+        return self.tags()
+            .find(|tag| tag.typ == T::TYPE_ID)
+            .map(tags::cast_tag::<T>)
     }
 
     /// Returns an iterable with the tags

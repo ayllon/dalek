@@ -21,24 +21,19 @@ pub extern fn rust_main(multiboot_address: usize) {
     vga_buffer::WRITER.lock().clear();
 
     let boot_info = bootinfo::load(multiboot_address);
-    let loader = boot_info
-        .get_tag(bootinfo::tags::Type::BootLoaderName)
-        .map(bootinfo::tags::BootLoaderName::cast);
+    println!("Multiboot address: 0x{:X}, size {} bytes", multiboot_address, boot_info.total_size);
 
-    println!("Multiboot address: 0x{:x}, size {} bytes", multiboot_address, boot_info.total_size);
+    boot_info.get_tag::<bootinfo::tags::BootLoaderName>().map(
+        |loader| println!("Booted by {}", loader.name())
+    );
 
-    boot_info.get_tag(bootinfo::tags::Type::ImageLoadBaseAddress)
-        .map(bootinfo::tags::ImageLoadBaseAddress::cast)
-        .map(|ba| println!("Running on base address{:x}", ba.load_base_address));
-
-    loader.map(|loader| println!("Booted by {}", loader.name()));
-
-    boot_info.get_tag(bootinfo::tags::Type::CommandLine)
-        .map(bootinfo::tags::CommandLine::cast)
+    boot_info.get_tag::<bootinfo::tags::CommandLine>()
         .map(|cmd| println!("Command line: {}", cmd.cmd()));
 
-    boot_info.get_tag(bootinfo::tags::Type::BiosBootDevice)
-        .map(bootinfo::tags::BiosDevice::cast)
+    boot_info.get_tag::<bootinfo::tags::ImageLoadBaseAddress>()
+        .map(|ba| println!("Running on base address {:x}", ba.load_base_address));
+
+    boot_info.get_tag::<bootinfo::tags::BiosBootDevice>()
         .map(|dev| println!("Booted from {}", dev));
 
     for tag in boot_info.tags() {
