@@ -46,14 +46,30 @@ impl fmt::Debug for Type {
 }
 
 /// All tags contain these fields
+#[derive(Clone, Copy, Debug)]
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
 pub struct Tag {
     /// Tag type
     pub typ: Type,
     /// Size of the full tag, including these two fields
     pub size: u32,
 }
+
+
+/// Generic implementation to convert to a known Tag type.
+/// It just casts the pointer.
+pub trait SpecificTag<T> {
+    fn cast(original: &'static Tag) -> &'static T;
+}
+
+macro_rules! implement_cast_from_tag {
+    () => {
+        pub fn cast(original: &'static Tag) -> &'static Self {
+            unsafe { &*{ original as *const Tag as *const Self }}
+        }
+    };
+}
+
 
 /// Iterates through tags in memory
 pub struct TagIter {
@@ -80,6 +96,7 @@ impl Iterator for TagIter {
 }
 
 /// This tags contains the Boot loader name
+#[derive(Debug, Clone, Copy)]
 #[repr(packed)]
 pub struct TagBootLoaderName {
     tag: Tag,
@@ -88,6 +105,8 @@ pub struct TagBootLoaderName {
 }
 
 impl TagBootLoaderName {
+    implement_cast_from_tag!();
+
     /// Returns a slice containing the full boot loader name
     pub fn name(&self) -> &str {
         use core::{mem, str, slice};
@@ -98,9 +117,16 @@ impl TagBootLoaderName {
             )
         }
     }
+}
 
-    /// Casts a Tag into a TagBootLoaderName
-    pub fn from(original: Option<&'static Tag>) -> Option<&'static TagBootLoaderName> {
-        original.map(|t| unsafe { &*{ t as *const Tag as *const TagBootLoaderName } })
-    }
+#[derive(Clone, Copy, Debug)]
+#[repr(packed)]
+pub struct TagImageLoadBaseAddress {
+    tag: Tag,
+    /// Base physical address
+    pub load_base_address: u32,
+}
+
+impl TagImageLoadBaseAddress {
+    implement_cast_from_tag!();
 }
