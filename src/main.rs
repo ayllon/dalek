@@ -26,18 +26,24 @@ pub extern fn rust_main(multiboot_address: usize) {
         .map(bootinfo::tags::BootLoaderName::cast);
 
     println!("Multiboot address: 0x{:x}, size {} bytes", multiboot_address, boot_info.total_size);
+
+    boot_info.get_tag(bootinfo::tags::Type::ImageLoadBaseAddress)
+        .map(bootinfo::tags::ImageLoadBaseAddress::cast)
+        .map(|ba| println!("Running on base address{:x}", ba.load_base_address));
+
     loader.map(|loader| println!("Booted by {}", loader.name()));
+
     boot_info.get_tag(bootinfo::tags::Type::CommandLine)
         .map(bootinfo::tags::CommandLine::cast)
         .map(|cmd| println!("Command line: {}", cmd.cmd()));
 
+    boot_info.get_tag(bootinfo::tags::Type::BiosBootDevice)
+        .map(bootinfo::tags::BiosDevice::cast)
+        .map(|dev| println!("Booted from {}", dev));
+
     for tag in boot_info.tags() {
         println!("{:?}", tag);
     }
-
-    let bat = boot_info.get_tag(bootinfo::tags::Type::ImageLoadBaseAddress);
-    let ba = bat.map(bootinfo::tags::ImageLoadBaseAddress::cast);
-    println!("{:x}", ba.unwrap().load_base_address);
 
     panic!();
 }

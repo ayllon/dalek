@@ -48,7 +48,7 @@ impl fmt::Debug for Type {
 
 /// All tags contain these fields
 #[derive(Debug)]
-#[repr(C)]
+#[repr(packed)]
 pub struct Tag {
     /// Tag type
     pub typ: Type,
@@ -98,7 +98,7 @@ impl Iterator for TagIter {
 
 /// This tag contains the command line passed by the boot loader
 #[derive(Debug)]
-#[repr(C)]
+#[repr(packed)]
 pub struct CommandLine {
     tag: Tag,
     /// First character of the command line
@@ -118,9 +118,29 @@ impl CommandLine {
     }
 }
 
+/// This tag contains the boot device used by the BIOS
+#[derive(Debug)]
+#[repr(packed)]
+pub struct BiosDevice {
+    tag: Tag,
+    pub biosdev: u32,
+    pub partition: u32,
+    pub sub_partition: u32
+}
+
+impl BiosDevice {
+    implement_cast_from_tag!();
+}
+
+impl fmt::Display for BiosDevice {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "0x{:X} 0x{:X} / 0x{:X}", self.biosdev, self.partition, self.sub_partition)
+    }
+}
+
 /// This tag contains the Boot loader name
 #[derive(Debug)]
-#[repr(C)]
+#[repr(packed)]
 pub struct BootLoaderName {
     tag: Tag,
     /// First character of the string containing the name
@@ -143,7 +163,7 @@ impl BootLoaderName {
 
 /// This tag contains the physical address where the image has been loaded
 #[derive(Debug)]
-#[repr(C)]
+#[repr(packed)]
 pub struct ImageLoadBaseAddress {
     tag: Tag,
     /// Base physical address
