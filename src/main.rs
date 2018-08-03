@@ -60,5 +60,9 @@ pub extern fn panic_fmt(info: &core::panic::PanicInfo) -> ! {
             println!("No message??")
     }
 
-    loop {}
+    loop {
+        unsafe {
+            asm!("HLT");
+        }
+    }
 }
