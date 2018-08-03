@@ -98,13 +98,13 @@ impl Iterator for TagIter {
 /// This tags contains the Boot loader name
 #[derive(Debug, Clone, Copy)]
 #[repr(packed)]
-pub struct TagBootLoaderName {
+pub struct BootLoaderName {
     tag: Tag,
     /// First character of the string containing the name
     pub string: u8
 }
 
-impl TagBootLoaderName {
+impl BootLoaderName {
     implement_cast_from_tag!();
 
     /// Returns a slice containing the full boot loader name
@@ -121,12 +121,12 @@ impl TagBootLoaderName {
 
 #[derive(Clone, Copy, Debug)]
 #[repr(packed)]
-pub struct TagImageLoadBaseAddress {
+pub struct ImageLoadBaseAddress {
     tag: Tag,
     /// Base physical address
     pub load_base_address: u32,
 }
 
-impl TagImageLoadBaseAddress {
+impl ImageLoadBaseAddress {
     implement_cast_from_tag!();
 }

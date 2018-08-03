@@ -23,7 +23,7 @@ pub extern fn rust_main(multiboot_address: usize) {
     let boot_info = bootinfo::load(multiboot_address);
     let loader = boot_info
         .get_tag(bootinfo::tags::Type::BootLoaderName)
-        .map(bootinfo::tags::TagBootLoaderName::cast);
+        .map(bootinfo::tags::BootLoaderName::cast);
 
     println!("Multiboot address: 0x{:x}, size {} bytes", multiboot_address, boot_info.total_size);
     loader.map(|loader| println!("Booted by {}", loader.name()));
@@ -33,7 +33,7 @@ pub extern fn rust_main(multiboot_address: usize) {
     }
 
     let bat = boot_info.get_tag(bootinfo::tags::Type::ImageLoadBaseAddress);
-    let ba = bat.map(bootinfo::tags::TagImageLoadBaseAddress::cast);
+    let ba = bat.map(bootinfo::tags::ImageLoadBaseAddress::cast);
     println!("{:x}", ba.unwrap().load_base_address);
 
     panic!();
