@@ -51,6 +51,9 @@ pub extern fn rust_main(multiboot_address: usize) {
     boot_info.get_tag::<bootinfo::tags::MemoryMap>()
         .map(_print_memory_map);
 
+    boot_info.get_tag::<bootinfo::tags::Framebuffer>()
+        .map(|f| println!("Framebuffer: {:?}", f));
+
     panic!();
 }
 

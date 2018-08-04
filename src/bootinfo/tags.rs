@@ -262,3 +262,37 @@ pub struct ImageLoadBaseAddress {
 impl TagTrait for ImageLoadBaseAddress {
     const TYPE_ID: TypeId = TypeId::ImageLoadBaseAddress;
 }
+
+/// This tag contains information about the framebuffer
+#[repr(C)]
+pub struct Framebuffer {
+    tag: Tag,
+    pub address: u64,
+    pub pitch: u32,
+    pub width: u32,
+    pub height: u32,
+    pub bbp: u8,
+    pub typ: FramebufferType,
+    pub reserved: u8
+}
+
+#[derive(Debug)]
+#[repr(u8)]
+pub enum FramebufferType {
+    Indexed = 0,
+    RGB = 1,
+    EGA = 2
+}
+
+impl TagTrait for Framebuffer {
+    const TYPE_ID: TypeId = TypeId::FrameBufferInfo;
+}
+
+impl fmt::Debug for Framebuffer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "{{address: 0x{:012X}, width: {}, height: {}, pitch: {}, bbp: {}, typ: {:?}}}",
+               self.address, self.width, self.height, self.pitch, self.bbp, self.typ
+        )
+    }
+}
