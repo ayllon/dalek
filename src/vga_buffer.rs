@@ -21,7 +21,7 @@ pub enum Color {
 }
 
 #[derive(Debug, Clone, Copy)]
-struct ColorCode(u8);
+pub struct ColorCode(u8);
 
 impl ColorCode {
     pub const fn new(foreground: Color, background: Color) -> ColorCode {
@@ -54,6 +54,12 @@ pub struct Writer {
 }
 
 impl Writer {
+    pub fn set_color(&mut self, color: ColorCode) -> ColorCode {
+        let prev = self.color_code;
+        self.color_code = color;
+        prev
+    }
+
     pub fn write_byte(&mut self, byte: u8) {
         match byte {
             b'\n' => self.new_line(),

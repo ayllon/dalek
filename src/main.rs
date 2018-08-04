@@ -61,6 +61,13 @@ pub extern fn rust_main(multiboot_address: usize) {
 #[panic_implementation]
 #[no_mangle]
 pub extern fn panic_fmt(info: &core::panic::PanicInfo) -> ! {
+    vga_buffer::WRITER.lock().set_color(
+        vga_buffer::ColorCode::new(
+            vga_buffer::Color::LightRed,
+            vga_buffer::Color::Black
+        )
+    );
+
     match info.location() {
         Some(l) =>
             println!("PANIC! {}:{}", l.file(), l.line()),
