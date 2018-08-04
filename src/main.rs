@@ -16,6 +16,14 @@ mod bootinfo;
 #[macro_use]
 mod vga_buffer;
 
+fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {
+    println!("\nMemory map version {}", memory_map.entry_version);
+    let mem_iter = memory_map.into_iter();
+    for mem in mem_iter {
+        println!("{:?}", mem);
+    }
+}
+
 #[no_mangle]
 pub extern fn rust_main(multiboot_address: usize) {
     vga_buffer::WRITER.lock().clear();
@@ -39,6 +47,9 @@ pub extern fn rust_main(multiboot_address: usize) {
     for tag in boot_info.tags() {
         println!("{:?}", tag);
     }
+
+    boot_info.get_tag::<bootinfo::tags::MemoryMap>()
+        .map(_print_memory_map);
 
     panic!();
 }

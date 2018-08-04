@@ -1,4 +1,3 @@
-// http://nongnu.askapache.com/grub/phcoder/multiboot.pdf
 pub mod tags;
 
 

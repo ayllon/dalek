@@ -134,6 +134,97 @@ impl fmt::Display for BiosBootDevice {
     }
 }
 
+/// This tag contains a map of the memory
+#[derive(Debug)]
+#[repr(C)]
+pub struct MemoryMap {
+    pub tag: Tag,
+    pub entry_size: u32,
+    pub entry_version: u32,
+    entries: MemoryMapEntry
+}
+
+#[allow(dead_code)]
+#[repr(u32)]
+#[derive(Copy, Clone, PartialEq)]
+pub enum MemoryMapEntryType {
+    Reserved = 0,
+    AvailableRAM = 1,
+    ACPI = 3,
+    Defective = 5,
+}
+
+#[repr(C)]
+pub struct MemoryMapEntry {
+    pub base_address: u64,
+    pub length: u64,
+    pub typ:  MemoryMapEntryType,
+    reserved: u32,
+}
+
+impl fmt::Debug for MemoryMapEntryType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            MemoryMapEntryType::AvailableRAM => f.write_str("AvailableRAM"),
+            MemoryMapEntryType::ACPI => f.write_str("ACPI"),
+            MemoryMapEntryType::Defective => f.write_str("Defective"),
+            _ => write!(f, "Reserved ({})", *self as u32)
+        }
+    }
+}
+
+impl fmt::Debug for MemoryMapEntry {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "{{base_address: 0x{:012X}, length: {:.2} MiB, typ: {:?}}}",
+               self.base_address, self.length as f32 / 1048576.0, self.typ
+        )
+    }
+}
+
+impl TagTrait for MemoryMap {
+    const TYPE_ID: TypeId = TypeId::MemoryMap;
+}
+
+pub struct MemoryMapIterator {
+    position: usize,
+    n_entries: usize,
+    entry_size: usize,
+    ptr: *const MemoryMapEntry
+}
+
+impl Iterator for MemoryMapIterator {
+    type Item = &'static MemoryMapEntry;
+
+    /// Gives next tag, None if reached the end of list
+    fn next(&mut self) -> Option<&'static MemoryMapEntry> {
+        if self.position >= self.n_entries {
+            None
+        }
+        else {
+            let nptr = self.ptr;
+            self.ptr = (self.ptr as usize + self.entry_size) as *const _;
+            self.position += 1;
+            unsafe { Some(&*nptr) }
+        }
+    }
+}
+
+impl IntoIterator for &'static MemoryMap {
+    type Item = &'static MemoryMapEntry;
+    type IntoIter = MemoryMapIterator;
+
+    fn into_iter(self) -> MemoryMapIterator {
+        let entries_size = self.tag.size as usize - mem::size_of::<MemoryMap>() + self.entry_size as usize;
+        let nentries = entries_size / self.entry_size as usize;
+        MemoryMapIterator{
+            position: 0, n_entries: nentries,
+            entry_size: self.entry_size as usize,
+            ptr: &self.entries
+        }
+    }
+}
+
 /// This tag contains the Boot loader name
 #[derive(Debug)]
 #[repr(C)]
