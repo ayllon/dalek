@@ -16,6 +16,12 @@ mod bootinfo;
 #[macro_use]
 mod vga_buffer;
 
+fn halt() {
+    unsafe {
+        asm!("HLT");
+    }
+}
+
 fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {
     println!("\nMemory map version {}", memory_map.entry_version);
     let mem_iter = memory_map.into_iter();
@@ -26,9 +32,17 @@ fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {
 
 #[no_mangle]
 pub extern fn rust_main(multiboot_address: usize) {
-    vga_buffer::WRITER.lock().clear();
-
     let boot_info = bootinfo::load(multiboot_address);
+
+    match boot_info.get_tag::<bootinfo::tags::Framebuffer>() {
+        Some(f) => {
+            *vga_buffer::WRITER.lock() = vga_buffer::Writer::new(f.address);
+            vga_buffer::WRITER.lock().clear();
+            println!("Framebuffer: {:?}", f)
+        }
+        None => halt()
+    }
+
     println!("Multiboot address: 0x{:X}, size {} bytes", multiboot_address, boot_info.total_size);
 
     boot_info.get_tag::<bootinfo::tags::BootLoaderName>().map(
@@ -50,9 +64,6 @@ pub extern fn rust_main(multiboot_address: usize) {
 
     boot_info.get_tag::<bootinfo::tags::MemoryMap>()
         .map(_print_memory_map);
-
-    boot_info.get_tag::<bootinfo::tags::Framebuffer>()
-        .map(|f| println!("Framebuffer: {:?}", f));
 
     panic!();
 }
@@ -83,8 +94,6 @@ pub extern fn panic_fmt(info: &core::panic::PanicInfo) -> ! {
     }
 
     loop {
-        unsafe {
-            asm!("HLT");
-        }
+        halt();
     }
 }

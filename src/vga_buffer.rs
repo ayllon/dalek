@@ -54,6 +54,14 @@ pub struct Writer {
 }
 
 impl Writer {
+    pub fn new(address: u64) -> Writer {
+        Writer {
+            column_position: 0,
+            color_code: ColorCode::new(Color::LightGreen, Color::Black),
+            buffer: unsafe { Unique::new_unchecked(address as *mut _) },
+        }
+    }
+
     pub fn set_color(&mut self, color: ColorCode) -> ColorCode {
         let prev = self.color_code;
         self.color_code = color;
@@ -139,7 +147,7 @@ use spin::Mutex;
 pub static WRITER: Mutex<Writer> = Mutex::new(Writer {
     column_position: 0,
     color_code: ColorCode::new(Color::LightGreen, Color::Black),
-    buffer: unsafe { Unique::new_unchecked(0xb8000 as *mut _) },
+    buffer: unsafe { Unique::new_unchecked(0x0 as *mut _) },
 });
 
 
