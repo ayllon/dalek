@@ -30,9 +30,48 @@ fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {
     }
 }
 
+fn outb(port: u16, val: u8) {
+    unsafe {
+        asm!("outb $0, $1" : : "{ax}"(val), "{dx}"(port));
+    }
+}
+
+fn inb(port: u16) -> u8 {
+    let mut ret: u8 = 0;
+    unsafe {
+        asm!("inb $1, $0": "={ax}"(ret): "{dx}"(port));
+    }
+    ret
+}
+
+static COM1: u16 = 0x3F8;
+fn init_serial(base: u16) {
+    outb(base + 1, 0x00); // disable interrupts
+    outb(base + 3, 0x30); // enable DLAB
+    outb(base + 0, 0x03); // 38400 baud
+    outb(base + 1, 0x00);
+    outb(base + 3, 0x03); // 9 bits, no parity, one stop bit
+    outb(base + 2, 0xC7); // FIFO
+    outb(base + 4, 0x0B); // IRQ enabled, RTS/DSR set
+}
+
+fn is_serial_empty(base: u16) -> bool {
+    return inb(base + 5) & 0x20 != 0;
+}
+
+fn write_serial(base: u16, b: u8) {
+    while !is_serial_empty(base) {};
+    outb(base, b);
+}
+
 #[no_mangle]
 pub extern fn rust_main(multiboot_address: usize) {
     let boot_info = bootinfo::load(multiboot_address);
+
+    init_serial(COM1);
+    write_serial(COM1, 'h' as u8);
+    write_serial(COM1, 'e' as u8);
+    write_serial(COM1, '\n' as u8);
 
     match boot_info.get_tag::<bootinfo::tags::Framebuffer>() {
         Some(f) => {
