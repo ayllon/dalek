@@ -38,13 +38,14 @@ pub extern fn rust_main(multiboot_address: usize) {
     let boot_info = bootinfo::load(multiboot_address);
 
     let mut serial = serial::Serial::new(serial::COM1);
+    write!(serial, "Hello world\n");
 
     match boot_info.get_tag::<bootinfo::tags::Framebuffer>() {
         Some(f) => {
+            write!(serial, "Framebuffer: {:?}", f);
             *vga_buffer::WRITER.lock() = vga_buffer::Writer::new(f.address);
             vga_buffer::WRITER.lock().clear();
             println!("Framebuffer: {:?}", f);
-            write!(serial, "Framebuffer: {:?}", f);
         }
         None => halt()
     }

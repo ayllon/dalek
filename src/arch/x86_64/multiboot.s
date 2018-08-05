@@ -13,6 +13,7 @@ multiboot_header:
     .long   0x100000000 - (0xe85250d6 + 0 + (multiboot_header_end - multiboot_header))
 
     // Tags
+
 framebuffer_tag:
     // Type
     .short 0
@@ -25,7 +26,7 @@ framebuffer_tag:
     // Height
     .long  25
     // Depth
-    .long  2
+    .long  0
 // Align
     .long  0
 

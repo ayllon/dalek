@@ -12,5 +12,5 @@ dalek.iso: kernel iso/grub.cfg
 iso: dalek.iso
 
 boot: dalek.iso
-	qemu-system-x86_64 -cdrom "dalek.iso" -m 512 -serial /dev/stdout
+	qemu-system-x86_64 -cdrom "dalek.iso" -m 512 -serial stdio 2> /dev/null
 
