@@ -41,11 +41,15 @@ pub extern fn rust_main(multiboot_address: usize) {
     write!(serial, "Hello world\n");
 
     match boot_info.get_tag::<bootinfo::tags::Framebuffer>() {
-        Some(f) => {
-            write!(serial, "Framebuffer: {:?}", f);
-            *vga_buffer::WRITER.lock() = vga_buffer::Writer::new(f.address);
+        Some(bootinfo::tags::Framebuffer {typ: bootinfo::tags::FramebufferType::EGA, address, ..}) => {
+            *vga_buffer::WRITER.lock() = vga_buffer::Writer::new(*address);
             vga_buffer::WRITER.lock().clear();
-            println!("Framebuffer: {:?}", f);
+        }
+        Some(f) => {
+            write!(serial, "Framebuffer: {:?}\n", f);
+            let p: *const u8 = (f.address) as *const _;
+            write!(serial, "Framebuffer: {:012X}\n", unsafe{*p});
+            halt();
         }
         None => halt()
     }
