@@ -22,18 +22,20 @@ fn main() {
 
         object_files.push(out_file.clone());
 
-        Command::new("gcc")
+        let gcc_status = Command::new("gcc")
             .args(&cc_flags)
             .args(&["-o", &out_file])
             .args(&["-c", &asm_path])
-            .status().unwrap();
+            .status().expect(&("Failed to compile ".to_owned() + asm_path));
+        assert!(gcc_status.success());
 
-        //println!("cargo:rerun-if-changed={}", asm.to_str().unwrap());
+        println!("cargo:rerun-if-changed={}", asm.to_str().unwrap());
     }
 
-    Command::new("ar")
+    let ar_status = Command::new("ar")
         .args(&["crus", "libboot.a"]).args(&object_files)
-        .current_dir(&Path::new(&out_dir)).status().unwrap();
+        .current_dir(&Path::new(&out_dir)).status().expect("Failed to bundle libboot.a");
+    assert!(ar_status.success());
 
     println!("cargo:rustc-link-search=native={}", out_dir);
     println!("cargo:rustc-link-lib=static=boot");
