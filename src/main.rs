@@ -16,12 +16,8 @@ mod bootinfo;
 #[macro_use]
 mod vga_buffer;
 mod serial;
+mod arch;
 
-fn halt() {
-    unsafe {
-        asm!("HLT");
-    }
-}
 
 fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {
     println!("\nMemory map version {}", memory_map.entry_version);
@@ -32,6 +28,7 @@ fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {
 }
 
 use core::fmt::Write;
+use arch::halt;
 
 #[no_mangle]
 pub extern fn rust_main(multiboot_address: usize) {
