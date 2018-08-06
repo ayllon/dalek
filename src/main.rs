@@ -16,12 +16,14 @@ extern crate volatile;
 extern crate lazy_static;
 
 mod bootinfo;
-#[macro_use]
 mod vga_buffer;
 mod serial;
 mod arch;
 mod idt;
 mod exception_handlers;
+
+#[macro_use]
+mod log;
 
 
 fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {

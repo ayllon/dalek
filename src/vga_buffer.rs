@@ -149,20 +149,3 @@ pub static WRITER: Mutex<Writer> = Mutex::new(Writer {
     color_code: ColorCode::new(Color::LightGreen, Color::Black),
     buffer: unsafe { Unique::new_unchecked(0xb8000 as *mut _) },
 });
-
-
-pub fn _print(args: fmt::Arguments) {
-    use core::fmt::Write;
-    WRITER.lock().write_fmt(args).unwrap();
-}
-
-macro_rules! print {
-    ($($arg:tt)*) => ({
-        $crate::vga_buffer::_print(format_args!($($arg)*));
-    });
-}
-
-macro_rules! println {
-    ($fmt:expr) => (print!(concat!($fmt, "\n")));
-    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
-}
