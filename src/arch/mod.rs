@@ -12,7 +12,7 @@ pub fn outb(port: u16, val: u8) {
 }
 
 pub fn inb(port: u16) -> u8 {
-    let mut ret: u8 = 0;
+    let ret: u8;
     unsafe {
         asm!("inb $1, $0": "={ax}"(ret): "{dx}"(port));
     }

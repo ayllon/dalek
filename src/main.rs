@@ -4,6 +4,7 @@
 #![feature(panic_implementation)]
 #![feature(panic_info_message)]
 #![feature(ptr_internals)]
+#![feature(abi_x86_interrupt)]
 
 #![no_std]
 #![no_main]
@@ -11,12 +12,16 @@
 extern crate rlibc;
 extern crate spin;
 extern crate volatile;
+#[macro_use]
+extern crate lazy_static;
 
 mod bootinfo;
 #[macro_use]
 mod vga_buffer;
 mod serial;
 mod arch;
+mod idt;
+mod exception_handlers;
 
 
 fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {
@@ -51,6 +56,8 @@ pub extern fn rust_main(multiboot_address: usize) {
         None => halt()
     }
 
+
+    /*
     println!("Multiboot address: 0x{:X}, size {} bytes", multiboot_address, boot_info.total_size);
 
     boot_info.get_tag::<bootinfo::tags::BootLoaderName>().map(
@@ -72,8 +79,33 @@ pub extern fn rust_main(multiboot_address: usize) {
 
     boot_info.get_tag::<bootinfo::tags::MemoryMap>()
         .map(_print_memory_map);
+    */
+
+    IDT.load();
+    println!("Installed IDT");
+    println!("{:?}", IDT.get_handler(0));
+
+    unsafe{asm!("movw 0, %dx; divw %dx":::"ax", "dx")};
 
     panic!();
+}
+
+
+lazy_static! {
+    static ref IDT: idt::Idt = {
+        use exception_handlers::{*};
+
+        let mut idt = idt::Idt::new();
+        idt.set_handler(idt::DIVIDE_BY_ZERO, divide_by_zero);
+        idt.set_handler(idt::OVERFLOW, overflow);
+        idt.set_handler(idt::INVALID_OPCODE, invalid_opcode);
+        idt.set_handler(idt::DOUBLE_FAULT, double_fault);
+        idt.set_handler(idt::SEGMENT_NOT_PRESENT, segment_not_present);
+        idt.set_handler(idt::STACK_SEGMENT_FAULT, stack_segment_fault);
+        idt.set_handler(idt::GENERAL_PROTECTION_FAULT, general_protection_fault);
+        idt.set_handler(idt::PAGE_FAULT, page_fault);
+        idt
+    };
 }
 
 
