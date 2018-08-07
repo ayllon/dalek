@@ -21,10 +21,13 @@ mod serial;
 mod arch;
 mod idt;
 mod exception_handlers;
-
 #[macro_use]
 mod log;
 
+use core::fmt;
+use core::mem;
+use core::convert::Into;
+use arch::halt;
 
 fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {
     println!("\nMemory map version {}", memory_map.entry_version);
@@ -34,26 +37,30 @@ fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {
     }
 }
 
-use core::fmt::Write;
-use arch::halt;
 
 #[no_mangle]
 pub extern fn rust_main(multiboot_address: usize) {
     let boot_info = bootinfo::load(multiboot_address);
 
     let mut serial = serial::Serial::new(serial::COM1);
-    write!(serial, "Hello world\n");
+    let serial_write: &mut fmt::Write = &mut serial;
+    unsafe { log::set_writer(mem::transmute(serial_write)) };
+
+    println!("Hello world!\n");
+
+    // Hold the VGA struct on the stack for the moment being
+    let mut vga = vga_buffer::Vga::new(0x00);
 
     match boot_info.get_tag::<bootinfo::tags::Framebuffer>() {
-        Some(bootinfo::tags::Framebuffer {typ: bootinfo::tags::FramebufferType::EGA, address, ..}) => {
-            *vga_buffer::WRITER.lock() = vga_buffer::Writer::new(*address);
-            vga_buffer::WRITER.lock().clear();
-        }
         Some(f) => {
-            write!(serial, "Framebuffer: {:?}\n", f);
-            let p: *const u8 = (f.address) as *const _;
-            write!(serial, "Framebuffer: {:012X}\n", unsafe{*p});
-            halt();
+            if f.typ == bootinfo::tags::FramebufferType::EGA {
+                vga = vga_buffer::Vga::new(f.address);
+                unsafe { log::set_writer(mem::transmute(&mut vga as &mut fmt::Write)) };
+            }
+            println!("Framebuffer: {:?}\n", f);
+
+            let p: *mut u8 = (f.address) as *mut _;
+            unsafe{*p = 0xFF};
         }
         None => halt()
     }
@@ -114,13 +121,6 @@ lazy_static! {
 #[panic_implementation]
 #[no_mangle]
 pub extern fn panic_fmt(info: &core::panic::PanicInfo) -> ! {
-    vga_buffer::WRITER.lock().set_color(
-        vga_buffer::ColorCode::new(
-            vga_buffer::Color::LightRed,
-            vga_buffer::Color::Black
-        )
-    );
-
     match info.location() {
         Some(l) =>
             println!("PANIC! {}:{}", l.file(), l.line()),

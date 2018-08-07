@@ -276,7 +276,7 @@ pub struct Framebuffer {
     pub reserved: u8
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 #[repr(u8)]
 pub enum FramebufferType {
     Indexed = 0,

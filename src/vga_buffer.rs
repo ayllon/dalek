@@ -47,15 +47,15 @@ struct Buffer {
 
 use core::ptr::Unique;
 
-pub struct Writer {
+pub struct Vga {
     column_position: usize,
     color_code: ColorCode,
     buffer: Unique<Buffer>,
 }
 
-impl Writer {
-    pub fn new(address: u64) -> Writer {
-        Writer {
+impl Vga {
+    pub fn new(address: u64) -> Vga {
+        Vga {
             column_position: 0,
             color_code: ColorCode::new(Color::LightGreen, Color::Black),
             buffer: unsafe { Unique::new_unchecked(address as *mut _) },
@@ -133,7 +133,7 @@ impl Writer {
 
 use core::fmt;
 
-impl fmt::Write for Writer {
+impl fmt::Write for Vga {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         for byte in s.bytes() {
             self.write_byte(byte)
@@ -141,11 +141,3 @@ impl fmt::Write for Writer {
         Ok(())
     }
 }
-
-use spin::Mutex;
-
-pub static WRITER: Mutex<Writer> = Mutex::new(Writer {
-    column_position: 0,
-    color_code: ColorCode::new(Color::LightGreen, Color::Black),
-    buffer: unsafe { Unique::new_unchecked(0xb8000 as *mut _) },
-});

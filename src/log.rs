@@ -1,23 +1,26 @@
 use core::fmt;
-use spin::{Mutex, MutexGuard};
 
-static log_writer: Mutex<Option<*mut fmt::Write>> = Mutex::new(None);
+static mut log_writer: Option<&'static mut fmt::Write> = None;
 
-pub fn _print(args: fmt::Arguments) -> fmt::Result {
+pub unsafe fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
-    match *log_writer.lock() {
-        Some(*mut w) => w.write_fmt(args),
-        _ => Err(fmt::Error)
+
+    if let Some(ref mut w) = log_writer {
+        w.write_fmt(args);
     }
+}
+
+pub unsafe fn set_writer(w: &'static mut fmt::Write) {
+    log_writer = Some(w);
 }
 
 macro_rules! print {
     ($($arg:tt)*) => ({
-        $crate::log::_print(format_args!($($arg)*));
+        unsafe { $crate::log::_print(format_args!($($arg)*)); };
     });
 }
 
 macro_rules! println {
-    ($fmt:expr) => (print!(concat!($fmt, "\n")));
-    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
+    ($fmt:expr) => (print!(concat!($fmt, "\n")););
+    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*););
 }
