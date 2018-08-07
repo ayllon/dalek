@@ -16,7 +16,7 @@ multiboot_header:
 
 framebuffer_tag:
     // Type
-    .short 0
+    .short 5
     // Flags
     .short 0
     // Size

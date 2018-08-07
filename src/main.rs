@@ -40,13 +40,18 @@ fn _print_memory_map(memory_map: &'static bootinfo::tags::MemoryMap) {
 
 #[no_mangle]
 pub extern fn rust_main(multiboot_address: usize) {
-    let boot_info = bootinfo::load(multiboot_address);
-
+    // Give some feedback ASAP, via COM1
     let mut serial = serial::Serial::new(serial::COM1);
     let serial_write: &mut fmt::Write = &mut serial;
     unsafe { log::set_writer(mem::transmute(serial_write)) };
 
     println!("Hello world!\n");
+
+    // Install the base IDT soon-ish, so we can get the errors
+    IDT.load();
+    println!("IDT installed\n");
+
+    let boot_info = bootinfo::load(multiboot_address);
 
     // Hold the VGA struct on the stack for the moment being
     let mut vga = vga_buffer::Vga::new(0x00);
@@ -65,8 +70,6 @@ pub extern fn rust_main(multiboot_address: usize) {
         None => halt()
     }
 
-
-    /*
     println!("Multiboot address: 0x{:X}, size {} bytes", multiboot_address, boot_info.total_size);
 
     boot_info.get_tag::<bootinfo::tags::BootLoaderName>().map(
@@ -88,11 +91,6 @@ pub extern fn rust_main(multiboot_address: usize) {
 
     boot_info.get_tag::<bootinfo::tags::MemoryMap>()
         .map(_print_memory_map);
-    */
-
-    IDT.load();
-    println!("Installed IDT");
-    println!("{:?}", IDT.get_handler(0));
 
     unsafe{asm!("movw 0, %dx; divw %dx":::"ax", "dx")};
 
